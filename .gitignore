@@ -1,2 +1,6 @@
+build/
+pkg/
+src/*.tar.*
+*.pkg.tar.*
 __pycache__/
 *.pyc

@@ -1,0 +1,29 @@
+name: Bug or device report
+description: Something doesn't work, or it works and you want to say which touchpad you tried it on
+body:
+  - type: input
+    id: laptop
+    attributes:
+      label: Laptop and touchpad
+      description: Laptop model and the touchpad name from `libinput list-devices`
+    validations:
+      required: true
+  - type: input
+    id: desktop
+    attributes:
+      label: Desktop and session
+      description: For example Omarchy (Hyprland, Wayland)
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Output of `topscroll status --json`
+      render: json
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, what you saw, and whether cursor, taps, clicks and gestures still behave normally
+    validations:
+      required: true
