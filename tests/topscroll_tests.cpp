@@ -222,14 +222,14 @@ private slots:
     {
         makeScroller({12, 5, false, true});
         down(0, 1, 500, 50);
-        moveTo(0, 700, 50);   // 20 mm right: 4 notches directly
-        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 4);
+        moveTo(0, 700, 50);   // 20 mm right
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 0);   // moving the finger doesn't scroll directly
         QVERIFY(s->cruising());
-        // (20 mm - 4 mm dead zone) / 5 mm per notch * 2 = 6.4 notches per second
-        QCOMPARE(s->cruiseRate(), 6.4);
+        // (5 mm head start + 20 mm - 1.5 mm dead zone) / 5 mm per notch * 2 = 9.4 notches per second
+        QCOMPARE(s->cruiseRate(), 9.4);
         for (int i = 0; i < 100; ++i)
             s->tick(0.01);   // the finger doesn't move for a second
-        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 4 + 6);
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 9);
     }
 
     void cruiseGoesFasterTheFurtherYouSlide()
@@ -262,9 +262,21 @@ private slots:
     {
         makeScroller({12, 5, false, true});
         down(0, 1, 500, 50);
-        moveTo(0, 535, 50);   // 3.5 mm: inside the dead zone
+        moveTo(0, 514, 50);   // 1.4 mm: inside the dead zone
         QCOMPARE(s->cruiseRate(), 0.0);
         QVERIFY(!s->cruising());
+        moveTo(0, 486, 50);   // and the same on the other side
+        QCOMPARE(s->cruiseRate(), 0.0);
+    }
+
+    void cruiseStartsAtOnceJustPastTheDeadZone()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 520, 50);   // 2 mm: 0.5 mm past the dead zone
+        QVERIFY(s->cruiseRate() >= 2.0);   // already a clear scroll, not a crawl
+        moveTo(0, 480, 50);
+        QVERIFY(s->cruiseRate() <= -2.0);
     }
 
     void cruiseStopsWhenTheFingerLifts()
@@ -297,7 +309,8 @@ private slots:
         makeScroller({12, 2.5, false, true});
         down(0, 1, 500, 50);
         moveTo(0, 700, 50);
-        QCOMPARE(s->cruiseRate(), slow * 2);
+        // the starting speed is its own setting; the speed setting scales the growth beyond it
+        QCOMPARE(s->cruiseRate() - 2.0, (slow - 2.0) * 2);
     }
 
     void cruiseHasACeiling()
@@ -306,6 +319,31 @@ private slots:
         down(0, 1, 0, 50);
         moveTo(0, 1000, 50);   // the whole width of the pad at the fastest setting
         QVERIFY(s->cruiseRate() <= 60.0);
+    }
+
+    void cruiseDeadZoneStartSpeedAndCeilingAreSettings()
+    {
+        ScrollOptions o{12, 5, false, true};
+        o.deadMm = 4;
+        makeScroller(o);
+        down(0, 1, 500, 50);
+        moveTo(0, 535, 50);   // 3.5 mm: now inside a 4 mm dead zone
+        QCOMPARE(s->cruiseRate(), 0.0);
+        moveTo(0, 545, 50);   // 0.5 mm past it: just the start speed
+        QCOMPARE(s->cruiseRate(), 2.0 + 0.5 * 0.2 * 2);
+
+        o.deadMm = 1.5;
+        o.cruiseStart = 6;
+        makeScroller(o);
+        down(0, 1, 500, 50);
+        moveTo(0, 520, 50);
+        QVERIFY(s->cruiseRate() >= 6.0);
+
+        o.cruiseMax = 10;
+        makeScroller(o);
+        down(0, 1, 0, 50);
+        moveTo(0, 1000, 50);
+        QCOMPARE(s->cruiseRate(), 10.0);
     }
 
     void cruiseNeverStartsFromOutsideTheStrip()
@@ -341,6 +379,10 @@ private slots:
         c.stripMm = 17;
         c.mmPerNotch = 3.5;
         c.invert = true;
+        c.cruise = true;
+        c.deadMm = 3;
+        c.cruiseStart = 4.5;
+        c.cruiseMax = 90;
         QVERIFY(c.save(path));
         QCOMPARE(Config::load(path), c);
     }
@@ -353,6 +395,11 @@ private slots:
         const Config c = Config::load(dir.filePath("wild.conf"));
         QCOMPARE(c.stripMm, Config::kMaxStripMm);
         QCOMPARE(c.mmPerNotch, Config::kMinMmPerNotch);
+        writeFile(dir.filePath("wild2.conf"), "[General]\ndead_mm=99\ncruise_start=0\ncruise_max=5000\n");
+        const Config d = Config::load(dir.filePath("wild2.conf"));
+        QCOMPARE(d.deadMm, Config::kMaxDeadMm);
+        QCOMPARE(d.cruiseStart, Config::kMinCruiseStart);
+        QCOMPARE(d.cruiseMax, Config::kMaxCruiseMax);
     }
 
     void statusRoundTripsAndNoticesDeadProcesses()
@@ -363,6 +410,8 @@ private slots:
         st.state = "active";
         st.device = "Fancy Touchpad";
         st.pid = QCoreApplication::applicationPid();
+        st.startedMs = 1234;
+        st.exe = "/usr/bin/topscroll";
         st.widthMm = 110;
         st.heightMm = 70;
         QVERIFY(st.save(path));
@@ -370,6 +419,31 @@ private slots:
         QVERIFY(st.alive());
         st.pid = 0x7ffffff0;   // beyond any real pid_max
         QVERIFY(!st.alive());
+    }
+
+    void anUpgradedBinaryMeansTheDaemonNeedsARestart()
+    {
+        QTemporaryDir dir;
+        const QString exe = dir.filePath("topscroll");
+        writeFile(exe, "binary");
+        const qint64 now = QDateTime::currentMSecsSinceEpoch();
+
+        Status st;
+        st.state = "active";
+        st.pid = QCoreApplication::applicationPid();
+        st.exe = exe;
+
+        st.startedMs = now + 60'000;   // started after the binary was installed
+        QVERIFY(!st.needsRestart());
+
+        st.startedMs = now - 3'600'000;   // started an hour before the binary was replaced
+        QVERIFY(st.needsRestart());
+
+        st.startedMs = 0;   // an older daemon that never recorded when it started
+        QVERIFY(st.needsRestart());
+
+        st.pid = 0x7ffffff0;   // not running at all: nothing to restart
+        QVERIFY(!st.needsRestart());
     }
 
     void themeReadsTheAccent()

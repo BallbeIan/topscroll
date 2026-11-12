@@ -22,5 +22,16 @@
   "Quit": "Afslut",
   "Cruise": "Cruise",
   "Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.": "Hold fingeren nede, så bliver den ved med at rulle. Jo længere du glider fra startpunktet, jo hurtigere går det. Løft fingeren for at stoppe.",
-  "Turn cruise on or off": "Slå cruise til eller fra"
+  "Turn cruise on or off": "Slå cruise til eller fra",
+  "topscroll was updated. Restart the service to use the new version.": "topscroll er blevet opdateret. Genstart tjenesten for at bruge den nye version.",
+  "Restart": "Genstart",
+  "Scroll with one finger": "Scroll med én finger",
+  "Scrolling": "Scroll",
+  "Dead zone": "Dødzone",
+  "%1 mm": "%1 mm",
+  "Start speed": "Startfart",
+  "Top speed": "Tophastighed",
+  "%1 notches per second": "%1 trin i sekundet",
+  "Reset to defaults": "Nulstil til standard",
+  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Små bevægelser omkring det sted, du rørte, ignoreres. Ud over det begynder den at scrolle med det samme."
 }

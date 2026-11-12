@@ -10,9 +10,15 @@ struct Config {
     double mmPerNotch = 5.0;
     bool invert = false;
     bool cruise = false;
+    double deadMm = 1.5;        // cruise: ignored movement around where the finger landed
+    double cruiseStart = 2.0;   // cruise: notches per second when it starts
+    double cruiseMax = 60.0;    // cruise: top speed, in notches per second
 
     static constexpr double kMinStripMm = 4, kMaxStripMm = 30;
     static constexpr double kMinMmPerNotch = 2, kMaxMmPerNotch = 12;
+    static constexpr double kMinDeadMm = 0.5, kMaxDeadMm = 8;
+    static constexpr double kMinCruiseStart = 0.5, kMaxCruiseStart = 10;
+    static constexpr double kMinCruiseMax = 10, kMaxCruiseMax = 120;
 
     static QString defaultPath();
     static Config load(const QString &path);

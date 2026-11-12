@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QDateTime>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -21,6 +22,8 @@ QByteArray Status::toJson() const
     return QJsonDocument(QJsonObject{{"state", state},
                                      {"device", device},
                                      {"pid", double(pid)},
+                                     {"started_ms", double(startedMs)},
+                                     {"exe", exe},
                                      {"width_mm", widthMm},
                                      {"height_mm", heightMm}})
         .toJson(QJsonDocument::Compact);
@@ -33,6 +36,8 @@ Status Status::fromJson(const QByteArray &json)
     s.state = o["state"].toString();
     s.device = o["device"].toString();
     s.pid = qint64(o["pid"].toDouble());
+    s.startedMs = qint64(o["started_ms"].toDouble());
+    s.exe = o["exe"].toString();
     s.widthMm = o["width_mm"].toDouble();
     s.heightMm = o["height_mm"].toDouble();
     return s;
@@ -60,4 +65,14 @@ bool Status::save(const QString &path) const
 bool Status::alive() const
 {
     return pid > 0 && QFileInfo::exists(QStringLiteral("/proc/%1").arg(pid));
+}
+
+bool Status::needsRestart() const
+{
+    if (!alive())
+        return false;
+    if (startedMs == 0)
+        return true;
+    const QFileInfo binary(exe);
+    return binary.exists() && binary.lastModified().toMSecsSinceEpoch() > startedMs;
 }

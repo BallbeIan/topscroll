@@ -22,5 +22,16 @@
   "Quit": "Quitter",
   "Cruise": "Croisière",
   "Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.": "Gardez le doigt posé et le défilement continue. Plus vous vous éloignez du point de départ, plus il va vite. Levez le doigt pour arrêter.",
-  "Turn cruise on or off": "Activer ou désactiver le mode croisière"
+  "Turn cruise on or off": "Activer ou désactiver le mode croisière",
+  "topscroll was updated. Restart the service to use the new version.": "topscroll a été mis à jour. Redémarrez le service pour utiliser la nouvelle version.",
+  "Restart": "Redémarrer",
+  "Scroll with one finger": "Faites défiler avec un doigt",
+  "Scrolling": "Défilement",
+  "Dead zone": "Zone morte",
+  "%1 mm": "%1 mm",
+  "Start speed": "Vitesse de départ",
+  "Top speed": "Vitesse maximale",
+  "%1 notches per second": "%1 crans par seconde",
+  "Reset to defaults": "Rétablir les valeurs par défaut",
+  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Les petits mouvements autour du point de contact sont ignorés. Au-delà, le défilement démarre aussitôt."
 }

@@ -22,5 +22,16 @@
   "Quit": "Beenden",
   "Cruise": "Cruise",
   "Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.": "Lass den Finger unten, und es scrollt weiter. Je weiter du dich vom Startpunkt entfernst, desto schneller geht es. Zum Stoppen den Finger abheben.",
-  "Turn cruise on or off": "Cruise ein- oder ausschalten"
+  "Turn cruise on or off": "Cruise ein- oder ausschalten",
+  "topscroll was updated. Restart the service to use the new version.": "topscroll wurde aktualisiert. Starte den Dienst neu, um die neue Version zu verwenden.",
+  "Restart": "Neu starten",
+  "Scroll with one finger": "Mit einem Finger scrollen",
+  "Scrolling": "Scrollen",
+  "Dead zone": "Totzone",
+  "%1 mm": "%1 mm",
+  "Start speed": "Startgeschwindigkeit",
+  "Top speed": "Höchstgeschwindigkeit",
+  "%1 notches per second": "%1 Rastungen pro Sekunde",
+  "Reset to defaults": "Auf Standard zurücksetzen",
+  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Kleine Bewegungen rund um die Berührungsstelle werden ignoriert. Darüber hinaus scrollt es sofort."
 }

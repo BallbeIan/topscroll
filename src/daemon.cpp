@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -29,6 +30,8 @@ Daemon::Daemon(QString configPath, QString statusPath, QObject *parent)
     connect(&m_retry, &QTimer::timeout, this, &Daemon::scan);
 
     m_status.pid = QCoreApplication::applicationPid();
+    m_status.startedMs = QDateTime::currentMSecsSinceEpoch();
+    m_status.exe = QCoreApplication::applicationFilePath();
 }
 
 Daemon::~Daemon()
@@ -58,7 +61,8 @@ void Daemon::armWatcher()
 
 ScrollOptions Daemon::options() const
 {
-    return {m_config.stripMm, m_config.mmPerNotch, m_config.invert, m_config.cruise};
+    return {m_config.stripMm, m_config.mmPerNotch, m_config.invert, m_config.cruise,
+            m_config.deadMm, m_config.cruiseStart, m_config.cruiseMax};
 }
 
 void Daemon::applyConfig()

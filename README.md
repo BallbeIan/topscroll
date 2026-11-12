@@ -20,7 +20,7 @@ Slide right to scroll up, slide left to scroll down. Everything else on the touc
 ## Highlights
 
 - **One finger is enough.** Put a finger down in the strip along the top edge and slide. It scrolls like a mouse wheel, in every app, on Wayland and X11.
-- **Optional cruise mode.** Turn on Cruise and a finger resting on the strip keeps scrolling, faster the further you slide. Lift to stop.
+- **Optional cruise mode.** Turn on Cruise and a finger resting on the strip keeps scrolling, faster the further you slide from where you landed. Lift to stop.
 - **Nothing else changes.** A touch that starts anywhere else is passed through untouched, and so are clicks and multi-finger gestures. A second finger never gets captured by the strip.
 - **See what you are tuning.** The settings window draws your touchpad to scale with the strip shaded, and every change applies instantly.
 - **Runs in the background.** A small systemd user service does the work, so scrolling survives closing the window and comes back at every login. It finds the touchpad again after a replug or resume.
@@ -54,7 +54,11 @@ sudo pacman -R topscroll
 | **Strip height** | How far down from the top edge the scroll strip reaches (4 to 30 mm, 12 by default). |
 | **Scroll speed** | How far your finger travels per wheel notch (2 to 12 mm, 5 by default). |
 | **Reverse direction** | Right scrolls down instead of up. |
-| **Cruise** | Off by default. Keep your finger down and it keeps scrolling, with no need to keep moving it. The further you slide from where you touched down, the faster it goes. Slide back toward the start to slow down, past it to reverse, and lift your finger to stop. Small movements (under 4 mm) never start it, and the speed is capped at 60 notches per second. The **Scroll speed** setting scales it. |
+| **Cruise** | Off by default. The spot where your finger lands is remembered. Stay inside the dead zone around it (left or right) and nothing happens, so small accidental movements are ignored. Slide past it and it starts scrolling at once and keeps going while your finger rests, faster the further you slide. Slide back toward the start to slow down, past it to reverse, and lift your finger to stop. While cruise is on, moving the finger doesn't also scroll directly. |
+| **Dead zone** | How far from where you landed the finger can move before cruise starts (0.5 to 8 mm, 1.5 by default). |
+| **Start speed** | How fast cruise scrolls the moment it leaves the dead zone (0.5 to 10 notches per second, 2 by default). |
+| **Top speed** | The ceiling for cruise (10 to 120 notches per second, 60 by default). The **Scroll speed** setting controls how quickly it climbs towards it. |
+| **Reset to defaults** | Puts every setting back to its default and leaves on/off as it is. |
 
 Settings are saved as you change them to `~/.config/topscroll/topscroll.conf`, and the service picks them up immediately.
 

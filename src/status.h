@@ -10,6 +10,8 @@ struct Status {
     QString state;
     QString device;
     qint64 pid = 0;
+    qint64 startedMs = 0;   // when the daemon started, ms since the epoch
+    QString exe;            // the binary it was started from
     double widthMm = 0;
     double heightMm = 0;
 
@@ -21,5 +23,9 @@ struct Status {
 
     // The file outlives a crashed daemon, so check that its process still exists.
     bool alive() const;
+    // True when the daemon is older than the binary on disk, which is what a
+    // package upgrade leaves behind: the old process keeps running until it
+    // is restarted. A daemon from before this field existed counts as old.
+    bool needsRestart() const;
     bool operator==(const Status &) const = default;
 };

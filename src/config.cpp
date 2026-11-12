@@ -18,6 +18,9 @@ void Config::clamp()
 {
     stripMm = std::clamp(stripMm, kMinStripMm, kMaxStripMm);
     mmPerNotch = std::clamp(mmPerNotch, kMinMmPerNotch, kMaxMmPerNotch);
+    deadMm = std::clamp(deadMm, kMinDeadMm, kMaxDeadMm);
+    cruiseStart = std::clamp(cruiseStart, kMinCruiseStart, kMaxCruiseStart);
+    cruiseMax = std::clamp(cruiseMax, kMinCruiseMax, kMaxCruiseMax);
 }
 
 Config Config::load(const QString &path)
@@ -30,6 +33,9 @@ Config Config::load(const QString &path)
         c.mmPerNotch = s.value("mm_per_notch", c.mmPerNotch).toDouble();
         c.invert = s.value("invert", c.invert).toBool();
         c.cruise = s.value("cruise", c.cruise).toBool();
+        c.deadMm = s.value("dead_mm", c.deadMm).toDouble();
+        c.cruiseStart = s.value("cruise_start", c.cruiseStart).toDouble();
+        c.cruiseMax = s.value("cruise_max", c.cruiseMax).toDouble();
     }
     c.clamp();
     return c;
@@ -43,12 +49,15 @@ bool Config::save(const QString &path) const
     QSaveFile f(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
         return false;
-    const QString text = QStringLiteral("[General]\nenabled=%1\nstrip_mm=%2\nmm_per_notch=%3\ninvert=%4\ncruise=%5\n")
+    const QString text = QStringLiteral("[General]\nenabled=%1\nstrip_mm=%2\nmm_per_notch=%3\ninvert=%4\ncruise=%5\ndead_mm=%6\ncruise_start=%7\ncruise_max=%8\n")
                              .arg(enabled ? "true" : "false")
                              .arg(stripMm, 0, 'f', 1)
                              .arg(mmPerNotch, 0, 'f', 1)
                              .arg(invert ? "true" : "false")
-                             .arg(cruise ? "true" : "false");
+                             .arg(cruise ? "true" : "false")
+                             .arg(deadMm, 0, 'f', 1)
+                             .arg(cruiseStart, 0, 'f', 1)
+                             .arg(cruiseMax, 0, 'f', 0);
     f.write(text.toUtf8());
     return f.commit();
 }

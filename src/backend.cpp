@@ -39,20 +39,42 @@ void Backend::setStripMm(double v) { Config c = m_config; c.stripMm = v; change(
 void Backend::setMmPerNotch(double v) { Config c = m_config; c.mmPerNotch = v; change(c); }
 void Backend::setInvert(bool v) { Config c = m_config; c.invert = v; change(c); }
 void Backend::setCruise(bool v) { Config c = m_config; c.cruise = v; change(c); }
+void Backend::setDeadMm(double v) { Config c = m_config; c.deadMm = v; change(c); }
+void Backend::setCruiseStart(double v) { Config c = m_config; c.cruiseStart = v; change(c); }
+void Backend::setCruiseMax(double v) { Config c = m_config; c.cruiseMax = v; change(c); }
+
+void Backend::resetDefaults()
+{
+    Config c;
+    c.enabled = m_config.enabled;
+    change(c);
+}
 
 void Backend::refreshStatus()
 {
     const Status s = Status::load(m_statusPath);
     const QString state = s.alive() ? s.state : QStringLiteral("stopped");
     const Status shown = s.alive() ? s : Status{};
-    if (state == m_state && shown == m_status)
+    const bool stale = s.needsRestart();
+    if (state == m_state && shown == m_status && stale == m_needsRestart)
         return;
+    m_needsRestart = stale;
     m_state = state;
     m_status = shown;
     emit statusChanged();
 }
 
 void Backend::startService()
+{
+    runSystemctl({"--user", "enable", "--now", "topscroll.service"});
+}
+
+void Backend::restartService()
+{
+    runSystemctl({"--user", "restart", "topscroll.service"});
+}
+
+void Backend::runSystemctl(const QStringList &args)
 {
     auto *p = new QProcess(this);
     connect(p, &QProcess::finished, this, [this, p](int code, QProcess::ExitStatus) {
@@ -69,5 +91,5 @@ void Backend::startService()
         emit serviceErrorChanged();
         p->deleteLater();
     });
-    p->start("systemctl", {"--user", "enable", "--now", "topscroll.service"});
+    p->start("systemctl", args);
 }

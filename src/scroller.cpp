@@ -10,13 +10,12 @@ constexpr int kToolButtons[] = {BTN_TOOL_FINGER, BTN_TOOL_DOUBLETAP, BTN_TOOL_TR
                                 BTN_TOOL_QUADTAP, BTN_TOOL_QUINTTAP};
 constexpr int kHiresPerNotch = 120;
 
-// Cruising: a finger within kDeadMm of where it landed does nothing, so a small
-// adjustment never starts a runaway scroll. Beyond that, every mm of distance
-// adds kCruiseGain notches per second per "notch worth" of travel (so the speed
-// setting still means something), up to a ceiling that keeps it controllable.
-constexpr double kDeadMm = 4.0;
+// Cruising: the spot where a finger lands is remembered. Staying within the dead
+// zone of it (left or right) does nothing, so small accidental movements never
+// start a scroll. Past that it starts at once, at the start speed, and every
+// further mm adds kCruiseGain times the speed setting's notches per mm, up to the
+// ceiling. The dead zone, start speed and ceiling are all user settings.
 constexpr double kCruiseGain = 2.0;
-constexpr double kMaxNotchesPerSecond = 60.0;
 }
 
 Scroller::Scroller(EventSink &touchOut, EventSink &scrollOut, AxisInfo x, AxisInfo y,
@@ -38,6 +37,9 @@ void Scroller::setOptions(const ScrollOptions &o)
     m_hiresPerMm = kHiresPerNotch * m_notchesPerMm;
     m_sign = o.invert ? -1 : 1;
     m_cruise = o.cruise;
+    m_deadMm = o.deadMm;
+    m_cruiseStart = o.cruiseStart;
+    m_cruiseMax = o.cruiseMax;
 }
 
 double Scroller::extentMm(const AxisInfo &a)
@@ -176,7 +178,9 @@ void Scroller::endFrame()
 
 void Scroller::scroll()
 {
-    if (!m_dx)
+    // While cruising, the distance from where the finger landed sets the speed;
+    // moving the finger doesn't also scroll directly.
+    if (!m_dx || m_cruise)
         return;
     const double mm = m_dx / m_xPerMm;
     m_dx = 0;
@@ -193,10 +197,11 @@ double Scroller::cruiseRate() const
         if (s.state != State::Captured || !s.hasX)
             continue;
         const double mm = (s.x - s.anchorX) / m_xPerMm;
-        const double beyond = std::abs(mm) - kDeadMm;
+        const double beyond = std::abs(mm) - m_deadMm;
         if (beyond <= 0)
             continue;
-        const double rate = std::min(kMaxNotchesPerSecond, beyond * m_notchesPerMm * kCruiseGain);
+        const double rate = std::min(m_cruiseMax,
+                                     m_cruiseStart + beyond * m_notchesPerMm * kCruiseGain);
         if (rate > std::abs(best))
             best = mm < 0 ? -rate : rate;
     }

@@ -19,6 +19,9 @@ struct ScrollOptions {
     // Keep scrolling while a finger rests on the strip, faster the further it
     // has slid from where it touched down. Lifting the finger stops it.
     bool cruise = false;
+    double deadMm = 1.5;          // cruise: movement this close to where the finger landed is ignored
+    double cruiseStart = 2.0;     // cruise: notches per second the moment it leaves the dead zone
+    double cruiseMax = 60.0;      // cruise: speed ceiling, in notches per second
 };
 
 // Routes touchpad events. Every touch is re-emitted through `touchOut`, except
@@ -72,6 +75,9 @@ private:
     double m_hiresPerMm = 24;
     double m_notchesPerMm = 0.2;
     bool m_cruise = false;
+    double m_deadMm = 1.5;
+    double m_cruiseStart = 2.0;
+    double m_cruiseMax = 60.0;
     int m_sign = 1;
 
     std::map<int, Slot> m_slots;
