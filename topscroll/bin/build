@@ -1,0 +1,8 @@
+#!/bin/sh
+# Shadow-builds into build/ so the source tree stays clean.
+set -e
+root=$(cd "$(dirname "$0")/.." && pwd)
+mkdir -p "$root/build"
+cd "$root/build"
+qmake6 "$root/topscroll.pro"
+make -j"$(nproc)"

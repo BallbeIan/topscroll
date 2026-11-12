@@ -1,0 +1,23 @@
+{
+  "Scrolling is on: %1": "Scrollen ist aktiv: %1",
+  "Scrolling is turned off": "Scrollen ist ausgeschaltet",
+  "Looking for a touchpad...": "Suche nach einem Touchpad...",
+  "No permission to read the touchpad. Log out and back in, then try again.": "Keine Berechtigung, das Touchpad zu lesen. Melde dich ab und wieder an und versuche es erneut.",
+  "Can't create virtual input devices. Log out and back in, or run: sudo modprobe uinput": "Virtuelle Eingabegeräte können nicht erstellt werden. Melde dich ab und wieder an oder führe aus: sudo modprobe uinput",
+  "Another program has taken over the touchpad.": "Ein anderes Programm hat das Touchpad übernommen.",
+  "The background service isn't running.": "Der Hintergrunddienst läuft nicht.",
+  "Start": "Starten",
+  "Slide right along the shaded strip to scroll down, left to scroll up.": "Wische am schattierten Streifen nach rechts, um nach unten zu scrollen, nach links, um nach oben zu scrollen.",
+  "Slide right along the shaded strip to scroll up, left to scroll down.": "Wische am schattierten Streifen nach rechts, um nach oben zu scrollen, nach links, um nach unten zu scrollen.",
+  "Strip height": "Höhe des Streifens",
+  "Scroll speed": "Scrollgeschwindigkeit",
+  "%1 mm per notch": "%1 mm pro Rastung",
+  "Reverse direction": "Richtung umkehren",
+  "Press ? for keyboard shortcuts": "Drücke ? für Tastenkürzel",
+  "Keyboard shortcuts": "Tastenkürzel",
+  "Turn scrolling on or off": "Scrollen ein- oder ausschalten",
+  "Taller or shorter strip": "Höherer oder niedrigerer Streifen",
+  "Slower or faster scrolling": "Langsamer oder schneller scrollen",
+  "Show this help": "Diese Hilfe anzeigen",
+  "Quit": "Beenden"
+}

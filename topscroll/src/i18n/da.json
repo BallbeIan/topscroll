@@ -1,0 +1,23 @@
+{
+  "Scrolling is on: %1": "Rulning er slået til: %1",
+  "Scrolling is turned off": "Rulning er slået fra",
+  "Looking for a touchpad...": "Leder efter en touchpad...",
+  "No permission to read the touchpad. Log out and back in, then try again.": "Ingen tilladelse til at læse touchpad'en. Log ud og ind igen, og prøv så igen.",
+  "Can't create virtual input devices. Log out and back in, or run: sudo modprobe uinput": "Kan ikke oprette virtuelle inputenheder. Log ud og ind igen, eller kør: sudo modprobe uinput",
+  "Another program has taken over the touchpad.": "Et andet program har overtaget touchpad'en.",
+  "The background service isn't running.": "Baggrundstjenesten kører ikke.",
+  "Start": "Start",
+  "Slide right along the shaded strip to scroll down, left to scroll up.": "Stryg til højre langs det skraverede bånd for at rulle ned, til venstre for at rulle op.",
+  "Slide right along the shaded strip to scroll up, left to scroll down.": "Stryg til højre langs det skraverede bånd for at rulle op, til venstre for at rulle ned.",
+  "Strip height": "Båndets højde",
+  "Scroll speed": "Rullehastighed",
+  "%1 mm per notch": "%1 mm pr. trin",
+  "Reverse direction": "Omvendt retning",
+  "Press ? for keyboard shortcuts": "Tryk på ? for genveje",
+  "Keyboard shortcuts": "Genveje",
+  "Turn scrolling on or off": "Slå rulning til eller fra",
+  "Taller or shorter strip": "Højere eller lavere bånd",
+  "Slower or faster scrolling": "Langsommere eller hurtigere rulning",
+  "Show this help": "Vis denne hjælp",
+  "Quit": "Afslut"
+}

@@ -1,0 +1,23 @@
+{
+  "Scrolling is on: %1": "Le défilement est activé : %1",
+  "Scrolling is turned off": "Le défilement est désactivé",
+  "Looking for a touchpad...": "Recherche d'un pavé tactile...",
+  "No permission to read the touchpad. Log out and back in, then try again.": "Pas d'autorisation pour lire le pavé tactile. Déconnectez-vous, reconnectez-vous et réessayez.",
+  "Can't create virtual input devices. Log out and back in, or run: sudo modprobe uinput": "Impossible de créer des périphériques d'entrée virtuels. Déconnectez-vous et reconnectez-vous, ou exécutez : sudo modprobe uinput",
+  "Another program has taken over the touchpad.": "Un autre programme a pris le contrôle du pavé tactile.",
+  "The background service isn't running.": "Le service en arrière-plan n'est pas lancé.",
+  "Start": "Démarrer",
+  "Slide right along the shaded strip to scroll down, left to scroll up.": "Glissez vers la droite le long de la bande grisée pour défiler vers le bas, vers la gauche pour défiler vers le haut.",
+  "Slide right along the shaded strip to scroll up, left to scroll down.": "Glissez vers la droite le long de la bande grisée pour défiler vers le haut, vers la gauche pour défiler vers le bas.",
+  "Strip height": "Hauteur de la bande",
+  "Scroll speed": "Vitesse de défilement",
+  "%1 mm per notch": "%1 mm par cran",
+  "Reverse direction": "Inverser le sens",
+  "Press ? for keyboard shortcuts": "Appuyez sur ? pour les raccourcis",
+  "Keyboard shortcuts": "Raccourcis clavier",
+  "Turn scrolling on or off": "Activer ou désactiver le défilement",
+  "Taller or shorter strip": "Bande plus haute ou plus basse",
+  "Slower or faster scrolling": "Défilement plus lent ou plus rapide",
+  "Show this help": "Afficher cette aide",
+  "Quit": "Quitter"
+}

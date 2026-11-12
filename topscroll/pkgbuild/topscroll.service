@@ -1,0 +1,12 @@
+[Unit]
+Description=Scroll with one finger along the touchpad's top edge
+
+[Service]
+ExecStart=/usr/bin/topscroll daemon
+# The touchpad can be unreadable for a moment after login; the daemon retries on
+# its own, but a crash should still bring it back.
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

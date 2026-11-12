@@ -1,0 +1,4 @@
+# Lets the logged-in user read their touchpad and create virtual input devices,
+# so topscroll runs without adding anyone to the `input` group.
+SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_INPUT_TOUCHPAD}=="1", TAG+="uaccess"
+KERNEL=="uinput", SUBSYSTEM=="misc", OPTIONS+="static_node=uinput", TAG+="uaccess"

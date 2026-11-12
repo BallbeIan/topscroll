@@ -1,0 +1,30 @@
+# Builds from the working tree one directory up, so `bin/install` packages
+# whatever you have checked out. A release PKGBUILD would fetch the tag tarball.
+pkgname=topscroll
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Scroll with one finger along the touchpad's top edge"
+arch=(x86_64)
+url="https://github.com/BallbeIan/topscroll"
+license=(MIT)
+depends=(qt6-base qt6-declarative qt6-wayland systemd)
+makedepends=(qt6-base qt6-declarative)
+install=topscroll.install
+options=(!debug)
+
+build() {
+  mkdir -p "$srcdir/build"
+  cd "$srcdir/build"
+  qmake6 "$startdir/../topscroll.pro"
+  make -j"$(nproc)"
+}
+
+package() {
+  install -Dm755 "$srcdir/build/topscroll" "$pkgdir/usr/bin/topscroll"
+  install -Dm644 "$startdir/topscroll.desktop" "$pkgdir/usr/share/applications/topscroll.desktop"
+  install -Dm644 "$startdir/topscroll.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/topscroll.svg"
+  install -Dm644 "$startdir/70-topscroll.rules" "$pkgdir/usr/lib/udev/rules.d/70-topscroll.rules"
+  install -Dm644 "$startdir/topscroll-modules.conf" "$pkgdir/usr/lib/modules-load.d/topscroll.conf"
+  install -Dm644 "$startdir/topscroll.service" "$pkgdir/usr/lib/systemd/user/topscroll.service"
+  install -Dm644 "$startdir/../LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Builds the package and installs it, so topscroll shows up in the app launcher.
+set -e
+cd "$(dirname "$0")/../pkgbuild"
+makepkg -fsi

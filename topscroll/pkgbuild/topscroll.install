@@ -1,0 +1,16 @@
+post_install() {
+    # Apply the udev rule to devices that already exist, so no re-login is needed.
+    modprobe uinput 2>/dev/null || true
+    udevadm control --reload 2>/dev/null || true
+    udevadm trigger --subsystem-match=input --subsystem-match=misc --action=change 2>/dev/null || true
+    echo "topscroll: run 'topscroll' (or find it in the launcher) and press Start to turn it on."
+}
+
+post_upgrade() {
+    post_install
+}
+
+post_remove() {
+    udevadm control --reload 2>/dev/null || true
+    udevadm trigger --subsystem-match=input --subsystem-match=misc --action=change 2>/dev/null || true
+}

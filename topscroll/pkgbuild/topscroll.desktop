@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=topscroll
+Name[da]=topscroll
+Comment=Scroll with one finger along the touchpad's top edge
+Comment[da]=Rul med én finger langs touchpad'ens øverste kant
+Comment[de]=Mit einem Finger am oberen Touchpad-Rand scrollen
+Comment[es]=Desplázate con un dedo por el borde superior del panel táctil
+Comment[fr]=Défilez avec un doigt le long du bord supérieur du pavé tactile
+Exec=topscroll open
+Icon=topscroll
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=touchpad;scroll;trackpad;
+StartupWMClass=topscroll

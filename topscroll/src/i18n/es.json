@@ -1,0 +1,23 @@
+{
+  "Scrolling is on: %1": "El desplazamiento está activado: %1",
+  "Scrolling is turned off": "El desplazamiento está desactivado",
+  "Looking for a touchpad...": "Buscando un panel táctil...",
+  "No permission to read the touchpad. Log out and back in, then try again.": "Sin permiso para leer el panel táctil. Cierra la sesión, vuelve a entrar e inténtalo de nuevo.",
+  "Can't create virtual input devices. Log out and back in, or run: sudo modprobe uinput": "No se pueden crear dispositivos de entrada virtuales. Cierra la sesión y vuelve a entrar, o ejecuta: sudo modprobe uinput",
+  "Another program has taken over the touchpad.": "Otro programa ha tomado el control del panel táctil.",
+  "The background service isn't running.": "El servicio en segundo plano no se está ejecutando.",
+  "Start": "Iniciar",
+  "Slide right along the shaded strip to scroll down, left to scroll up.": "Desliza a la derecha por la franja sombreada para bajar y a la izquierda para subir.",
+  "Slide right along the shaded strip to scroll up, left to scroll down.": "Desliza a la derecha por la franja sombreada para subir y a la izquierda para bajar.",
+  "Strip height": "Altura de la franja",
+  "Scroll speed": "Velocidad de desplazamiento",
+  "%1 mm per notch": "%1 mm por paso",
+  "Reverse direction": "Invertir dirección",
+  "Press ? for keyboard shortcuts": "Pulsa ? para ver los atajos",
+  "Keyboard shortcuts": "Atajos de teclado",
+  "Turn scrolling on or off": "Activar o desactivar el desplazamiento",
+  "Taller or shorter strip": "Franja más alta o más baja",
+  "Slower or faster scrolling": "Desplazamiento más lento o más rápido",
+  "Show this help": "Mostrar esta ayuda",
+  "Quit": "Salir"
+}
