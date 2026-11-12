@@ -106,11 +106,6 @@ How it works, the code layout, building from source and adding a translation are
 
 Available in English, Danish, German, Spanish and French.
 
-## Roadmap
-
-- [ ] Horizontal scrolling option
-- [ ] A release tarball and an `omarchy-pkgs` entry
-
 ## License
 
 [MIT](LICENSE)
