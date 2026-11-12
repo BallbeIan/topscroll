@@ -13,7 +13,7 @@ topscroll has been developed on one Omarchy laptop. How it behaves on other touc
 
 ## Building
 
-See [Building from source](README.md#building-from-source). Run `bin/test` before opening a pull request.
+See [Building from source](docs/DEVELOPING.md#building-from-source). Run `bin/test` before opening a pull request.
 
 ## Pull requests
 

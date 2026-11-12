@@ -2,158 +2,114 @@
 
 # topscroll
 
-**Scroll with one finger, along the top edge of your touchpad.**
-Slide right to scroll up, slide left to scroll down. Everything else on the touchpad (cursor, taps, clicks, gestures) works exactly as before. Made for [Omarchy](https://omarchy.org).
+**Scroll with one finger.**
+Slide along the top edge of your laptop's touchpad to scroll, in any app. Everything else on the touchpad works exactly as before.
 
-![Linux](https://img.shields.io/badge/Linux-evdev%20%2B%20uinput-FCC624?logo=linux&logoColor=black)
-![Qt 6](https://img.shields.io/badge/Qt-6-41CD52?logo=qt&logoColor=white)
-![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-Wayland%20%26%20X11-FCC624?logo=linux&logoColor=black)
+![Made for Omarchy](https://img.shields.io/badge/made%20for-Omarchy-1f6feb)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
-<img src="docs/images/settings.png" alt="The topscroll settings window: an on/off switch, a status card, an animated touchpad showing the gesture, a big on/off switch, simple Speed and Scroll area sliders, switches for smooth stop, hold to keep scrolling and flip direction, and a collapsed Fine-tune section" width="340">
-<img src="docs/images/shortcuts.png" alt="The keyboard shortcuts overlay" width="340">
+<img src="docs/images/settings.png" alt="The topscroll window: an animated touchpad showing the gesture, a big on/off switch, simple Speed and Scroll area sliders, switches for smooth stop, hold to keep scrolling and flip direction, and a collapsed Fine-tune section" width="360">
 
 </div>
 
 ---
 
-## Highlights
+## What it does
 
-- **One finger is enough.** Put a finger down in the strip along the top edge and slide. It scrolls like a mouse wheel, in every app, on Wayland and X11.
-- **Smooth stop.** Lift your finger mid-slide and scrolling coasts on and eases out, like a flicked wheel. Adjustable, or off.
-- **Hold to keep scrolling.** Optional. topscroll remembers where your finger landed and ignores small movements around it; slide past that and it starts scrolling at once and keeps going while you rest, faster the further you slide. Lift to stop (or to coast to a stop, with Smooth stop on).
-- **Nothing else changes.** A touch that starts anywhere else is passed through untouched, and so are clicks and multi-finger gestures. A second finger never gets captured by the strip.
-- **See what you are tuning.** The settings window draws your touchpad with the strip shaded and a demo finger showing the gesture. Plain-language controls, with the fiddly numbers tucked into Fine-tune. Every change applies instantly.
-- **Runs in the background.** A small systemd user service does the work, so scrolling survives closing the window and comes back at every login. It finds the touchpad again after a replug or resume.
-- **Feels like part of Omarchy.** It follows the theme's accent colour and your corner rounding live, and speaks the language chosen in Setup > Language.
-- **Private by design.** No network code, no logging, no analytics. Touch events are only read to route them.
+Put one finger on the **top edge** of your touchpad and slide.
 
-## Installing
+- Slide **right** to scroll **up**.
+- Slide **left** to scroll **down**.
 
-topscroll is not in the Omarchy package repository yet, so build the package yourself. You need `git`, `base-devel` and the Qt 6 packages that ship with Omarchy.
+That's it. No second finger, no keyboard shortcut. Moving the cursor, tapping, clicking and multi-finger gestures all work the way they always did, because only touches that start on that top strip are treated as scrolling.
+
+## Nice touches
+
+- **Smooth stop.** Lift your finger mid-slide and the scrolling coasts on and eases out, like flicking a wheel.
+- **Hold to keep scrolling.** Optional. Keep your finger down and it keeps going, faster the further you slide. Small accidental movements are ignored.
+- **Make it yours.** Change the speed, the size of the strip and the direction, and watch the preview react. Every change applies instantly.
+- **Always on.** It runs quietly in the background and comes back every time you log in. Closing the window doesn't stop it.
+- **Private.** No network access, no logging, no analytics.
+
+## Install
+
+topscroll is made for [Omarchy](https://omarchy.org) and isn't in its package list yet, so you build the package once. You'll need `git` and `base-devel`; the Qt libraries it needs come with Omarchy.
 
 ```bash
 git clone https://github.com/BallbeIan/topscroll.git
 cd topscroll
-bin/install        # makepkg -fsi: builds the package and installs it
+bin/install
 ```
 
-Then open **topscroll** from the launcher (`Super + Space`) and press **Start**. That enables the user service. From then on sliding along the top edge scrolls.
+It will ask for your password to install the package. Then:
 
-To remove it:
+1. Open **topscroll** from the app launcher (`Super + Space`).
+2. Press **Start** if it asks you to.
+3. Slide a finger along the top edge of your touchpad.
+
+If it says **Needs permission**, log out and back in once and try again.
+
+<details>
+<summary>Uninstall</summary>
 
 ```bash
 systemctl --user disable --now topscroll
 sudo pacman -R topscroll
 ```
 
+</details>
+
 ## Using it
+
+Everything is in the window. The sliders and switches do what they say:
 
 | Setting | What it does |
 |---|---|
-| **On / off switch** | Lets go of the touchpad entirely when off, so it behaves as if topscroll weren't installed. |
-| **Speed** | How far you have to slide for each scroll step, from slow to fast. |
-| **Scroll area** | How far down from the top edge the scrolling strip reaches. |
-| **Smooth stop** | On by default. When you lift your finger, scrolling keeps coasting at the speed you had and eases to a stop, like flicking a wheel. Pausing before you lift leaves no glide, and touching the pad again stops it. |
-| **Hold to keep scrolling** | Off by default (called *cruise* in the code). The spot where your finger lands is remembered. Move a little and nothing happens, so accidental movements are ignored. Slide past that and it starts scrolling at once and keeps going while your finger rests, faster the further you slide. Slide back to slow down, past the start to reverse, and lift to stop. |
-| **Flip direction** | Right scrolls down instead of up. |
-| **Fine-tune** | Hidden until you open it: **Smooth stop length**, **Ignore small movements** (the area around where you landed that doesn't count), and the **Start speed** and **Top speed** for holding to keep scrolling. **Reset to defaults** puts everything back and leaves on/off as it is. |
+| **On / off switch** | Turns scrolling off completely, so your touchpad behaves as if topscroll weren't installed. |
+| **Speed** | How far you slide for each scroll step, from slow to fast. |
+| **Scroll area** | How tall the scrolling strip along the top edge is. |
+| **Smooth stop** | Keep coasting after you lift your finger, then ease to a stop. |
+| **Hold to keep scrolling** | Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. |
+| **Flip direction** | Slide right to scroll down instead of up. |
+| **Fine-tune** | Opens the finer controls: how long the smooth stop lasts, how much movement is ignored, and the start and top speed for holding to keep scrolling. **Reset to defaults** is in here too. |
 
-Settings are saved as you change them to `~/.config/topscroll/topscroll.conf`, and the service picks them up immediately.
+Press `?` in the window for keyboard shortcuts.
 
-### Keyboard shortcuts
+<div align="center">
+<img src="docs/images/shortcuts.png" alt="The keyboard shortcuts overlay" width="300">
+</div>
 
-| Key | Action |
+## Good to know
+
+- **It's new.** topscroll was built and tested on one Omarchy laptop. Other touchpads and desktops should work but haven't been verified. If you try it, please [tell me how it went](../../issues/new/choose), even if everything works.
+- **One touchpad.** Only the first touchpad it finds is used.
+- **Permissions.** To see your touches and create a virtual touchpad, topscroll gets access to your touchpad and to `/dev/uinput`, which the package sets up for you. Any program you run can use `/dev/uinput` to create virtual input devices, including a virtual keyboard; other packages such as game-controller remappers make the same trade-off. If that's not for you, don't install topscroll.
+- **Name-based settings.** The virtual touchpad is named `<your touchpad> (topscroll)`, so desktop settings keyed on the touchpad's exact name won't apply to it. General touchpad settings still do.
+
+## Something not working?
+
+| You see | Try this |
 |---|---|
-| `Space` | Turn scrolling on or off |
-| `R` | Reverse direction |
-| `C` | Turn hold to keep scrolling on or off |
-| `G` | Turn smooth stop on or off |
-| `Up` / `Down` | Taller or shorter strip |
-| `Left` / `Right` | Slower or faster scrolling |
-| `?` | Show shortcuts |
-| `Q` | Quit |
+| **Needs permission** | Log out and back in, then open topscroll again. |
+| **Can't start** | Log out and back in, or run `sudo modprobe uinput`. |
+| **Touchpad in use** | Another program has taken over the touchpad. Close it and try again. |
+| **Not running** | Press **Start**. |
+| **Update ready** | Press **Restart** to start using the new version. |
+| Scrolls the wrong way | Turn on **Flip direction**. |
 
-### Command line
+Still stuck? [Open an issue](../../issues/new/choose) and include the output of `topscroll status --json`.
 
-```bash
-topscroll              # the settings window (same as `topscroll open`)
-topscroll daemon       # run the scrolling service in the foreground
-topscroll status       # what the service is doing; add --json for scripts, exits 1 if it isn't running
-```
+## For developers
 
-## Requirements and compatibility
+How it works, the code layout, building from source and adding a translation are in [docs/DEVELOPING.md](docs/DEVELOPING.md). Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Command line: `topscroll` opens the window, `topscroll daemon` runs the service in the foreground, and `topscroll status` reports what the service is doing.
 
-- Linux with **evdev and uinput**, **systemd**, and **Qt 6.5 or newer**.
-- Developed on an **Omarchy** laptop (Hyprland, Wayland). Other touchpads and desktops have not been verified yet. If you try it on one, please [open an issue](../../issues/new/choose) and say what worked.
-- Only the first detected touchpad is handled.
-- Compositor settings that are keyed on the touchpad's name do not apply to the virtual touchpad, which is named `<touchpad name> (topscroll)`. Global touchpad settings still apply.
-
-## Permissions
-
-| What | Why |
-|---|---|
-| Read access to your touchpad's `/dev/input/event*` node | To see touches. A udev rule gives the logged-in user access through logind's `uaccess` tag, so you do not need to join the `input` group. |
-| `/dev/uinput` | To re-emit touches through a virtual touchpad and to create the virtual wheel. The same udev rule grants it, and the `uinput` module is loaded at boot. |
-
-Access to `/dev/uinput` means any program you run can create virtual input devices, including a virtual keyboard. That is the same trade-off other packages make, such as game-controller remappers. If you are not comfortable with it, do not install topscroll.
-
-The package installs these files: the `topscroll` binary, a desktop entry and icon, `70-topscroll.rules`, a `modules-load.d` entry and the user service. See [`pkgbuild/`](pkgbuild).
-
-## How it works
-
-libinput has no top-edge scrolling, so the daemon grabs the touchpad through evdev and re-emits every touch through a virtual touchpad. A touch that *starts* in the top strip while no other finger is down is swallowed, so the cursor does not move, and its horizontal motion becomes wheel events on a virtual mouse. It works on Wayland and X11 because it sits below the compositor.
-
-```
- touchpad ──► Daemon ──► Scroller ──┬──► virtual touchpad   (every other touch, clicks, gestures)
- (grabbed)      ▲                   └──► virtual wheel      (touches that began in the strip)
-                │
- topscroll.conf ┘   settings window ──► topscroll.conf       daemon ──► status.json ──► settings window
-```
-
-The settings window only edits `topscroll.conf`, and the daemon watches that file. The daemon reports what it is doing in `$XDG_RUNTIME_DIR/topscroll/status.json`, which the window and `topscroll status` read.
-
-| Path | What it does |
-|---|---|
-| `src/scroller.{h,cpp}` | The routing logic. Writes to an `EventSink`, so tests need no hardware |
-| `src/evdev.{h,cpp}` | Reads touchpad capabilities and creates virtual devices through `/dev/uinput` |
-| `src/daemon.{h,cpp}` | Finds and grabs the touchpad, follows the config file, publishes status |
-| `src/config.*`, `src/status.*` | The settings file and the status file |
-| `src/backend.*`, `src/Main.qml` | The settings window |
-| `src/theme.*`, `src/translator.*`, `src/i18n/` | Omarchy theme and language, followed live |
-| `pkgbuild/` | PKGBUILD, desktop entry, icon, udev rule, user service |
-| `tests/` | Qt Test suite |
-
-## Building from source
-
-You need `qmake6`, `make`, a C++20 compiler and Qt 6 base and declarative. On Omarchy:
-
-```bash
-omarchy-pkg-add base-devel qt6-base qt6-declarative qt6-wayland
-```
-
-```bash
-git clone https://github.com/BallbeIan/topscroll.git
-cd topscroll
-bin/build          # qmake6 + make into build/topscroll
-bin/test           # Qt Test suite, offscreen, never touches real input devices
-bin/screenshot docs/images/settings.png   # regenerate the README screenshot from the real app (QT_SCALE_FACTOR=2 for sharper)
-```
-
-When trying `build/topscroll daemon` by hand, point `XDG_CONFIG_HOME` and `XDG_RUNTIME_DIR` at a throwaway directory so it does not touch your real settings.
-
-## Translations
-
-English, Danish, German, Spanish and French so far. Other languages show English. Translations are small JSON files in [`src/i18n/`](src/i18n) (English text to translation), so adding a language is one file plus a line in `src/resources.qrc`.
+Available in English, Danish, German, Spanish and French.
 
 ## Roadmap
 
 - [ ] Horizontal scrolling option
 - [ ] A release tarball and an `omarchy-pkgs` entry
-
-## Contributing
-
-Bug reports and device reports are very welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
