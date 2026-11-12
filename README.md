@@ -10,7 +10,7 @@ Slide right to scroll up, slide left to scroll down. Everything else on the touc
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
-<img src="docs/images/settings.png" alt="The topscroll settings window: an on/off switch, a touchpad drawn to scale with the scroll strip shaded, and sliders for strip height and scroll speed" width="340">
+<img src="docs/images/settings.png" alt="The topscroll settings window: an on/off switch, a status card, a touchpad drawn to scale with the scroll strip shaded and a demo finger, and sliders for strip height, scroll speed and the cruise dead zone, start speed and top speed" width="340">
 <img src="docs/images/shortcuts.png" alt="The keyboard shortcuts overlay" width="340">
 
 </div>
@@ -20,9 +20,9 @@ Slide right to scroll up, slide left to scroll down. Everything else on the touc
 ## Highlights
 
 - **One finger is enough.** Put a finger down in the strip along the top edge and slide. It scrolls like a mouse wheel, in every app, on Wayland and X11.
-- **Optional cruise mode.** Turn on Cruise and a finger resting on the strip keeps scrolling, faster the further you slide from where you landed. Lift to stop.
+- **Optional cruise mode.** Turn on Cruise and topscroll remembers where your finger landed. A small dead zone around that spot ignores accidental movement; slide past it and it starts scrolling at once and keeps going while you rest, faster the further you slide. Lift to stop. The dead zone, start speed and top speed are all adjustable.
 - **Nothing else changes.** A touch that starts anywhere else is passed through untouched, and so are clicks and multi-finger gestures. A second finger never gets captured by the strip.
-- **See what you are tuning.** The settings window draws your touchpad to scale with the strip shaded, and every change applies instantly.
+- **See what you are tuning.** The settings window draws your touchpad to scale with the strip shaded and a demo finger showing the gesture (with the dead zone while cruise is on). Every change applies instantly, and one button resets everything.
 - **Runs in the background.** A small systemd user service does the work, so scrolling survives closing the window and comes back at every login. It finds the touchpad again after a replug or resume.
 - **Feels like part of Omarchy.** It follows the theme's accent colour and your corner rounding live, and speaks the language chosen in Setup > Language.
 - **Private by design.** No network code, no logging, no analytics. Touch events are only read to route them.
