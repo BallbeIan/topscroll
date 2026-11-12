@@ -19,5 +19,8 @@
   "Taller or shorter strip": "Höherer oder niedrigerer Streifen",
   "Slower or faster scrolling": "Langsamer oder schneller scrollen",
   "Show this help": "Diese Hilfe anzeigen",
-  "Quit": "Beenden"
+  "Quit": "Beenden",
+  "Cruise": "Cruise",
+  "Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.": "Lass den Finger unten, und es scrollt weiter. Je weiter du dich vom Startpunkt entfernst, desto schneller geht es. Zum Stoppen den Finger abheben.",
+  "Turn cruise on or off": "Cruise ein- oder ausschalten"
 }

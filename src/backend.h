@@ -16,6 +16,7 @@ class Backend : public QObject {
     Q_PROPERTY(double stripMm READ stripMm WRITE setStripMm NOTIFY configChanged)
     Q_PROPERTY(double mmPerNotch READ mmPerNotch WRITE setMmPerNotch NOTIFY configChanged)
     Q_PROPERTY(bool invert READ invert WRITE setInvert NOTIFY configChanged)
+    Q_PROPERTY(bool cruise READ cruise WRITE setCruise NOTIFY configChanged)
 
     // active, disabled, searching, denied, uinput, busy, or stopped (no daemon process)
     Q_PROPERTY(QString state READ state NOTIFY statusChanged)
@@ -33,10 +34,12 @@ public:
     double stripMm() const { return m_config.stripMm; }
     double mmPerNotch() const { return m_config.mmPerNotch; }
     bool invert() const { return m_config.invert; }
+    bool cruise() const { return m_config.cruise; }
     void setEnabled(bool v);
     void setStripMm(double v);
     void setMmPerNotch(double v);
     void setInvert(bool v);
+    void setCruise(bool v);
 
     QString state() const { return m_state; }
     QString device() const { return m_status.device; }

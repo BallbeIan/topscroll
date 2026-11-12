@@ -38,6 +38,7 @@ void Backend::setEnabled(bool v) { Config c = m_config; c.enabled = v; change(c)
 void Backend::setStripMm(double v) { Config c = m_config; c.stripMm = v; change(c); }
 void Backend::setMmPerNotch(double v) { Config c = m_config; c.mmPerNotch = v; change(c); }
 void Backend::setInvert(bool v) { Config c = m_config; c.invert = v; change(c); }
+void Backend::setCruise(bool v) { Config c = m_config; c.cruise = v; change(c); }
 
 void Backend::refreshStatus()
 {

@@ -3,11 +3,20 @@
 #include <linux/input.h>
 
 #include <algorithm>
+#include <cmath>
 
 namespace {
 constexpr int kToolButtons[] = {BTN_TOOL_FINGER, BTN_TOOL_DOUBLETAP, BTN_TOOL_TRIPLETAP,
                                 BTN_TOOL_QUADTAP, BTN_TOOL_QUINTTAP};
 constexpr int kHiresPerNotch = 120;
+
+// Cruising: a finger within kDeadMm of where it landed does nothing, so a small
+// adjustment never starts a runaway scroll. Beyond that, every mm of distance
+// adds kCruiseGain notches per second per "notch worth" of travel (so the speed
+// setting still means something), up to a ceiling that keeps it controllable.
+constexpr double kDeadMm = 4.0;
+constexpr double kCruiseGain = 2.0;
+constexpr double kMaxNotchesPerSecond = 60.0;
 }
 
 Scroller::Scroller(EventSink &touchOut, EventSink &scrollOut, AxisInfo x, AxisInfo y,
@@ -25,8 +34,10 @@ void Scroller::setOptions(const ScrollOptions &o)
         m_xPerMm = 1;
     m_strip = m_yInfo.resolution ? o.stripMm * m_yInfo.resolution
                                  : 0.12 * (m_yInfo.max - m_yInfo.min);
-    m_hiresPerMm = kHiresPerNotch / std::max(0.1, o.mmPerNotch);
+    m_notchesPerMm = 1.0 / std::max(0.1, o.mmPerNotch);
+    m_hiresPerMm = kHiresPerNotch * m_notchesPerMm;
     m_sign = o.invert ? -1 : 1;
+    m_cruise = o.cruise;
 }
 
 double Scroller::extentMm(const AxisInfo &a)
@@ -139,6 +150,7 @@ void Scroller::endFrame()
         });
         if (alone && s.y - m_yInfo.min <= m_strip) {
             s.state = State::Captured;
+            s.anchorX = s.x;
             s.buffer.clear();
         } else {
             flush(slot, s);
@@ -168,7 +180,40 @@ void Scroller::scroll()
         return;
     const double mm = m_dx / m_xPerMm;
     m_dx = 0;
-    m_hiresAcc += mm * m_hiresPerMm * m_sign;
+    addHires(mm * m_hiresPerMm * m_sign);
+}
+
+double Scroller::cruiseRate() const
+{
+    if (!m_cruise)
+        return 0;
+    // With two fingers in the strip, the one that has slid furthest decides.
+    double best = 0;
+    for (const auto &[slot, s] : m_slots) {
+        if (s.state != State::Captured || !s.hasX)
+            continue;
+        const double mm = (s.x - s.anchorX) / m_xPerMm;
+        const double beyond = std::abs(mm) - kDeadMm;
+        if (beyond <= 0)
+            continue;
+        const double rate = std::min(kMaxNotchesPerSecond, beyond * m_notchesPerMm * kCruiseGain);
+        if (rate > std::abs(best))
+            best = mm < 0 ? -rate : rate;
+    }
+    return best * m_sign;
+}
+
+void Scroller::tick(double seconds)
+{
+    const double rate = cruiseRate();
+    if (rate == 0 || seconds <= 0)
+        return;
+    addHires(rate * kHiresPerNotch * seconds);
+}
+
+void Scroller::addHires(double hires)
+{
+    m_hiresAcc += hires;
     const int whole = int(m_hiresAcc);   // truncates toward zero; the remainder carries over
     if (!whole)
         return;

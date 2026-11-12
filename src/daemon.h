@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QFileSystemWatcher>
+#include <QElapsedTimer>
 #include <QObject>
 #include <QSocketNotifier>
 #include <QTimer>
@@ -31,6 +32,8 @@ private:
     QString attach(int fd, const DeviceCaps &caps);   // empty on success, else the status state
     void release();
     void onReadable();
+    void onTick();
+    void updateTick();
     void publish(const QString &state, const DeviceCaps *caps = nullptr);
     ScrollOptions options() const;
 
@@ -42,6 +45,8 @@ private:
     QFileSystemWatcher m_watcher;
     QTimer m_reload;   // debounces bursts of file events into one reload
     QTimer m_retry;    // looks for a touchpad again while none is attached
+    QTimer m_tick;     // advances cruising; runs only while a finger is cruising
+    QElapsedTimer m_clock;
 
     int m_fd = -1;
     std::unique_ptr<QSocketNotifier> m_notifier;

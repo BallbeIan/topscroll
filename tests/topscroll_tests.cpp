@@ -206,6 +206,126 @@ private slots:
         QCOMPARE(touch.sum(EV_KEY, BTN_TOUCH), 0);
     }
 
+    // --- cruise: 100 x 70 mm pad, 10 units per mm; strip is the top 12 mm ---
+
+    void cruiseIsOffByDefault()
+    {
+        down(0, 1, 500, 50);
+        moveTo(0, 800, 50);
+        wheel.events.clear();
+        s->tick(1.0);
+        QCOMPARE(wheel.events.size(), size_t(0));
+        QVERIFY(!s->cruising());
+    }
+
+    void cruiseKeepsScrollingWhileTheFingerRests()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 700, 50);   // 20 mm right: 4 notches directly
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 4);
+        QVERIFY(s->cruising());
+        // (20 mm - 4 mm dead zone) / 5 mm per notch * 2 = 6.4 notches per second
+        QCOMPARE(s->cruiseRate(), 6.4);
+        for (int i = 0; i < 100; ++i)
+            s->tick(0.01);   // the finger doesn't move for a second
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 4 + 6);
+    }
+
+    void cruiseGoesFasterTheFurtherYouSlide()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 100, 50);
+        moveTo(0, 300, 50);
+        const double near = s->cruiseRate();
+        moveTo(0, 500, 50);
+        QVERIFY(s->cruiseRate() > near);
+        QVERIFY(near > 0);
+    }
+
+    void cruiseSlowsAndReversesWhenYouSlideBack()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 800, 50);
+        const double fast = s->cruiseRate();
+        moveTo(0, 650, 50);
+        QVERIFY(s->cruiseRate() < fast);
+        QVERIFY(s->cruiseRate() > 0);
+        moveTo(0, 500, 50);
+        QCOMPARE(s->cruiseRate(), 0.0);
+        moveTo(0, 300, 50);
+        QVERIFY(s->cruiseRate() < 0);   // past where it landed, the other way: scrolls down
+    }
+
+    void cruiseIgnoresSmallMovements()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 535, 50);   // 3.5 mm: inside the dead zone
+        QCOMPARE(s->cruiseRate(), 0.0);
+        QVERIFY(!s->cruising());
+    }
+
+    void cruiseStopsWhenTheFingerLifts()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 800, 50);
+        QVERIFY(s->cruising());
+        up(0);
+        QVERIFY(!s->cruising());
+        wheel.events.clear();
+        s->tick(1.0);
+        QCOMPARE(wheel.events.size(), size_t(0));
+    }
+
+    void cruiseRespectsReverseDirection()
+    {
+        makeScroller({12, 5, true, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 700, 50);
+        QVERIFY(s->cruiseRate() < 0);
+    }
+
+    void cruiseSpeedFollowsTheSpeedSetting()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 700, 50);
+        const double slow = s->cruiseRate();
+        makeScroller({12, 2.5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 700, 50);
+        QCOMPARE(s->cruiseRate(), slow * 2);
+    }
+
+    void cruiseHasACeiling()
+    {
+        makeScroller({12, 2, false, true});
+        down(0, 1, 0, 50);
+        moveTo(0, 1000, 50);   // the whole width of the pad at the fastest setting
+        QVERIFY(s->cruiseRate() <= 60.0);
+    }
+
+    void cruiseNeverStartsFromOutsideTheStrip()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 400);
+        moveTo(0, 900, 400);
+        QVERIFY(!s->cruising());
+    }
+
+    void configRoundTripsCruise()
+    {
+        QTemporaryDir dir;
+        Config c;
+        c.cruise = true;
+        QVERIFY(c.save(dir.filePath("c.conf")));
+        QVERIFY(Config::load(dir.filePath("c.conf")).cruise);
+        QVERIFY(!Config::load(dir.filePath("missing.conf")).cruise);   // off unless asked for
+    }
+
     void padSizeComesFromTheResolution()
     {
         QCOMPARE(Scroller::extentMm({0, 1000, 10}), 100.0);

@@ -9,6 +9,7 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include <algorithm>
 #include <cerrno>
 
 Daemon::Daemon(QString configPath, QString statusPath, QObject *parent)
@@ -19,6 +20,10 @@ Daemon::Daemon(QString configPath, QString statusPath, QObject *parent)
     connect(&m_reload, &QTimer::timeout, this, &Daemon::applyConfig);
     connect(&m_watcher, &QFileSystemWatcher::fileChanged, &m_reload, qOverload<>(&QTimer::start));
     connect(&m_watcher, &QFileSystemWatcher::directoryChanged, &m_reload, qOverload<>(&QTimer::start));
+
+    m_tick.setInterval(10);
+    m_tick.setTimerType(Qt::PreciseTimer);
+    connect(&m_tick, &QTimer::timeout, this, &Daemon::onTick);
 
     m_retry.setInterval(3000);
     connect(&m_retry, &QTimer::timeout, this, &Daemon::scan);
@@ -53,7 +58,7 @@ void Daemon::armWatcher()
 
 ScrollOptions Daemon::options() const
 {
-    return {m_config.stripMm, m_config.mmPerNotch, m_config.invert};
+    return {m_config.stripMm, m_config.mmPerNotch, m_config.invert, m_config.cruise};
 }
 
 void Daemon::applyConfig()
@@ -70,6 +75,7 @@ void Daemon::applyConfig()
     }
     if (m_scroller) {
         m_scroller->setOptions(options());
+        updateTick();
         return;
     }
     scan();
@@ -97,8 +103,7 @@ void Daemon::scan()
         const QString state = attach(fd, caps);
         if (state.isEmpty())
             return;
-        failure = state;
-        break;
+        failure = state;   // keep looking: another touchpad may be free
     }
     if (failure == "searching" && denied)
         failure = "denied";
@@ -142,6 +147,7 @@ void Daemon::release()
         m_notifier->setEnabled(false);
         m_notifier.release()->deleteLater();
     }
+    m_tick.stop();
     m_scroller.reset();
     if (m_fd >= 0) {
         ioctl(m_fd, EVIOCGRAB, 0);
@@ -169,7 +175,31 @@ void Daemon::onReadable()
         }
         for (size_t i = 0; i < size_t(n) / sizeof(input_event); ++i)
             m_scroller->handle(events[i].type, events[i].code, events[i].value);
+        updateTick();
     }
+}
+
+void Daemon::updateTick()
+{
+    // A resting finger sends no events, so cruising needs a clock of its own.
+    // It runs only while a finger is far enough from where it landed to scroll.
+    if (m_scroller && m_scroller->cruising()) {
+        if (!m_tick.isActive()) {
+            m_clock.restart();
+            m_tick.start();
+        }
+    } else {
+        m_tick.stop();
+    }
+}
+
+void Daemon::onTick()
+{
+    if (!m_scroller)
+        return;
+    // Cap the step so a stalled event loop can't fire one huge scroll.
+    m_scroller->tick(std::min(0.1, m_clock.restart() / 1000.0));
+    updateTick();
 }
 
 void Daemon::publish(const QString &state, const DeviceCaps *caps)

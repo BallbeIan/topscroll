@@ -9,6 +9,7 @@ struct Config {
     double stripMm = 12.0;
     double mmPerNotch = 5.0;
     bool invert = false;
+    bool cruise = false;
 
     static constexpr double kMinStripMm = 4, kMaxStripMm = 30;
     static constexpr double kMinMmPerNotch = 2, kMaxMmPerNotch = 12;

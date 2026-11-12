@@ -29,6 +29,7 @@ Config Config::load(const QString &path)
         c.stripMm = s.value("strip_mm", c.stripMm).toDouble();
         c.mmPerNotch = s.value("mm_per_notch", c.mmPerNotch).toDouble();
         c.invert = s.value("invert", c.invert).toBool();
+        c.cruise = s.value("cruise", c.cruise).toBool();
     }
     c.clamp();
     return c;
@@ -42,11 +43,12 @@ bool Config::save(const QString &path) const
     QSaveFile f(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
         return false;
-    const QString text = QStringLiteral("[General]\nenabled=%1\nstrip_mm=%2\nmm_per_notch=%3\ninvert=%4\n")
+    const QString text = QStringLiteral("[General]\nenabled=%1\nstrip_mm=%2\nmm_per_notch=%3\ninvert=%4\ncruise=%5\n")
                              .arg(enabled ? "true" : "false")
                              .arg(stripMm, 0, 'f', 1)
                              .arg(mmPerNotch, 0, 'f', 1)
-                             .arg(invert ? "true" : "false");
+                             .arg(invert ? "true" : "false")
+                             .arg(cruise ? "true" : "false");
     f.write(text.toUtf8());
     return f.commit();
 }

@@ -16,6 +16,9 @@ struct ScrollOptions {
     double stripMm = 12.0;      // height of the scroll strip along the top edge
     double mmPerNotch = 5.0;    // finger travel per wheel notch; smaller is faster
     bool invert = false;        // swap direction
+    // Keep scrolling while a finger rests on the strip, faster the further it
+    // has slid from where it touched down. Lifting the finger stops it.
+    bool cruise = false;
 };
 
 // Routes touchpad events. Every touch is re-emitted through `touchOut`, except
@@ -30,6 +33,14 @@ public:
     void setOptions(const ScrollOptions &options);
     void handle(int type, int code, int value);
 
+    // Advances cruising by `seconds`. The caller supplies the clock, so tests
+    // need no real time and the daemon only ticks while there is something to do.
+    void tick(double seconds);
+    // True while a finger in the strip is far enough from where it landed to scroll.
+    bool cruising() const { return cruiseRate() != 0; }
+    // Cruise speed in wheel notches per second, signed like the wheel (positive is up).
+    double cruiseRate() const;
+
     // Physical size of an axis in mm, or 0 when the device doesn't report it.
     static double extentMm(const AxisInfo &axis);
 
@@ -41,6 +52,7 @@ private:
         std::vector<std::pair<int, int>> buffer;   // held back until we know where the touch began
         bool hasX = false, hasY = false;
         int x = 0, y = 0;
+        int anchorX = 0;   // where a captured touch landed; cruise speed grows with distance from it
     };
 
     void send(int type, int code, int value);
@@ -49,6 +61,7 @@ private:
     void flush(int slot, Slot &s);
     void endFrame();
     void scroll();
+    void addHires(double hires);
     void reset();
 
     EventSink &m_touch;
@@ -57,6 +70,8 @@ private:
     double m_xPerMm = 1;
     double m_strip = 0;
     double m_hiresPerMm = 24;
+    double m_notchesPerMm = 0.2;
+    bool m_cruise = false;
     int m_sign = 1;
 
     std::map<int, Slot> m_slots;

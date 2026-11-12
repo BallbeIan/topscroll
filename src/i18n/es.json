@@ -19,5 +19,8 @@
   "Taller or shorter strip": "Franja más alta o más baja",
   "Slower or faster scrolling": "Desplazamiento más lento o más rápido",
   "Show this help": "Mostrar esta ayuda",
-  "Quit": "Salir"
+  "Quit": "Salir",
+  "Cruise": "Crucero",
+  "Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.": "Mantén el dedo apoyado y seguirá desplazándose. Cuanto más te alejes del punto de inicio, más rápido va. Levanta el dedo para parar.",
+  "Turn cruise on or off": "Activar o desactivar el modo crucero"
 }

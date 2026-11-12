@@ -8,9 +8,9 @@ ApplicationWindow {
 
     visible: true
     width: 460
-    height: 680
+    height: 780
     minimumWidth: 400
-    minimumHeight: 620
+    minimumHeight: 720
     title: "topscroll"
     color: "#121212"
 
@@ -196,6 +196,28 @@ ApplicationWindow {
                 Binding { target: invertSwitch; property: "checked"; value: backend.invert }
             }
 
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 2
+                RowLayout {
+                    Layout.fillWidth: true
+                    Label { text: qsTr("Cruise"); Layout.fillWidth: true }
+                    Switch {
+                        id: cruiseSwitch
+                        focusPolicy: Qt.NoFocus
+                        onToggled: backend.cruise = checked
+                    }
+                    Binding { target: cruiseSwitch; property: "checked"; value: backend.cruise }
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    opacity: 0.6
+                    font.pixelSize: 12
+                    text: qsTr("Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.")
+                }
+            }
+
             Item { Layout.fillHeight: true }
 
             Label {
@@ -225,6 +247,7 @@ ApplicationWindow {
                 model: [
                     { key: "Space", what: qsTr("Turn scrolling on or off") },
                     { key: "R", what: qsTr("Reverse direction") },
+                    { key: "C", what: qsTr("Turn cruise on or off") },
                     { key: "Up / Down", what: qsTr("Taller or shorter strip") },
                     { key: "Left / Right", what: qsTr("Slower or faster scrolling") },
                     { key: "?", what: qsTr("Show this help") },
@@ -243,6 +266,7 @@ ApplicationWindow {
     }
 
     Shortcut { sequences: ["Space"]; context: Qt.ApplicationShortcut; onActivated: backend.enabled = !backend.enabled }
+    Shortcut { sequences: ["C"]; context: Qt.ApplicationShortcut; onActivated: backend.cruise = !backend.cruise }
     Shortcut { sequences: ["R"]; context: Qt.ApplicationShortcut; onActivated: backend.invert = !backend.invert }
     Shortcut { sequences: ["Up"]; context: Qt.ApplicationShortcut; onActivated: backend.stripMm = win.nudge(backend.stripMm, 1, 4, 30) }
     Shortcut { sequences: ["Down"]; context: Qt.ApplicationShortcut; onActivated: backend.stripMm = win.nudge(backend.stripMm, -1, 4, 30) }

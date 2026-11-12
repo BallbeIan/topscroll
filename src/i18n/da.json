@@ -19,5 +19,8 @@
   "Taller or shorter strip": "Højere eller lavere bånd",
   "Slower or faster scrolling": "Langsommere eller hurtigere rulning",
   "Show this help": "Vis denne hjælp",
-  "Quit": "Afslut"
+  "Quit": "Afslut",
+  "Cruise": "Cruise",
+  "Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.": "Hold fingeren nede, så bliver den ved med at rulle. Jo længere du glider fra startpunktet, jo hurtigere går det. Løft fingeren for at stoppe.",
+  "Turn cruise on or off": "Slå cruise til eller fra"
 }
