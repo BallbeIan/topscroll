@@ -62,7 +62,8 @@ void Daemon::armWatcher()
 ScrollOptions Daemon::options() const
 {
     return {m_config.stripMm, m_config.mmPerNotch, m_config.invert, m_config.cruise,
-            m_config.deadMm, m_config.cruiseStart, m_config.cruiseMax};
+            m_config.deadMm, m_config.cruiseStart, m_config.cruiseMax,
+            m_config.inertia, m_config.glideSeconds};
 }
 
 void Daemon::applyConfig()
@@ -185,9 +186,9 @@ void Daemon::onReadable()
 
 void Daemon::updateTick()
 {
-    // A resting finger sends no events, so cruising needs a clock of its own.
-    // It runs only while a finger is far enough from where it landed to scroll.
-    if (m_scroller && m_scroller->cruising()) {
+    // A resting finger or a glide sends no events, so they need a clock of their own.
+    // It runs only while something is cruising, sliding or gliding.
+    if (m_scroller && m_scroller->needsTick()) {
         if (!m_tick.isActive()) {
             m_clock.restart();
             m_tick.start();

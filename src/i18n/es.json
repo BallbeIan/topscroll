@@ -33,5 +33,10 @@
   "Top speed": "Velocidad máxima",
   "%1 notches per second": "%1 pasos por segundo",
   "Reset to defaults": "Restablecer valores",
-  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Se ignoran los movimientos pequeños alrededor de donde tocaste. Más allá, empieza a desplazarse al instante."
+  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Se ignoran los movimientos pequeños alrededor de donde tocaste. Más allá, empieza a desplazarse al instante.",
+  "Glide": "Inercia",
+  "Keep coasting after you lift your finger, then ease to a stop.": "Sigue deslizándose al levantar el dedo y se detiene suavemente.",
+  "Glide length": "Duración de la inercia",
+  "%1 s": "%1 s",
+  "Turn glide on or off": "Activar o desactivar la inercia"
 }

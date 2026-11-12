@@ -42,6 +42,8 @@ void Backend::setCruise(bool v) { Config c = m_config; c.cruise = v; change(c); 
 void Backend::setDeadMm(double v) { Config c = m_config; c.deadMm = v; change(c); }
 void Backend::setCruiseStart(double v) { Config c = m_config; c.cruiseStart = v; change(c); }
 void Backend::setCruiseMax(double v) { Config c = m_config; c.cruiseMax = v; change(c); }
+void Backend::setInertia(bool v) { Config c = m_config; c.inertia = v; change(c); }
+void Backend::setGlideSeconds(double v) { Config c = m_config; c.glideSeconds = v; change(c); }
 
 void Backend::resetDefaults()
 {

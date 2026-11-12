@@ -281,7 +281,9 @@ private slots:
 
     void cruiseStopsWhenTheFingerLifts()
     {
-        makeScroller({12, 5, false, true});
+        ScrollOptions o{12, 5, false, true};
+        o.inertia = false;
+        makeScroller(o);
         down(0, 1, 500, 50);
         moveTo(0, 800, 50);
         QVERIFY(s->cruising());
@@ -346,6 +348,130 @@ private slots:
         QCOMPARE(s->cruiseRate(), 10.0);
     }
 
+    // --- inertia: 100 x 70 mm pad, 10 units per mm; 5 mm per notch ---
+
+    // Slides right at 40 mm/s (2 mm every 50 ms) for `frames` frames, ticking the clock as it goes.
+    void slide(int frames, int dx = 20)
+    {
+        int x = 100;
+        down(0, 1, x, 50);
+        for (int f = 0; f < frames; ++f) {
+            x += dx;
+            moveTo(0, x, 50);
+            for (int t = 0; t < 5; ++t)
+                s->tick(0.01);
+        }
+    }
+    void settle(double seconds)
+    {
+        for (int t = 0; t < int(seconds * 100); ++t)
+            s->tick(0.01);
+    }
+
+    void scrollingGlidesAfterTheFingerLifts()
+    {
+        slide(10);
+        up(0);
+        wheel.events.clear();
+        s->tick(0.01);
+        QVERIFY(wheel.sum(EV_REL, REL_WHEEL_HI_RES) > 0);   // still moving up after lifting
+        settle(5);
+        const int total = wheel.sum(EV_REL, REL_WHEEL_HI_RES);
+        QVERIFY(total > 120);                                // a real glide, not a twitch
+        wheel.events.clear();
+        settle(2);
+        QCOMPARE(wheel.events.size(), size_t(0));            // and it comes to a stop
+        QVERIFY(!s->needsTick());
+    }
+
+    void glideKeepsTheDirection()
+    {
+        slide(10, -20);
+        up(0);
+        wheel.events.clear();
+        settle(3);
+        QVERIFY(wheel.sum(EV_REL, REL_WHEEL_HI_RES) < 0);
+    }
+
+    void glideSlowsDown()
+    {
+        slide(10);
+        up(0);
+        wheel.events.clear();
+        settle(0.3);
+        const int first = wheel.sum(EV_REL, REL_WHEEL_HI_RES);
+        wheel.events.clear();
+        settle(0.3);
+        QVERIFY(wheel.sum(EV_REL, REL_WHEEL_HI_RES) < first);
+    }
+
+    void aFingerThatPausedBeforeLiftingDoesNotGlide()
+    {
+        slide(10);
+        settle(0.6);   // rests on the pad
+        up(0);
+        wheel.events.clear();
+        settle(3);
+        QCOMPARE(wheel.events.size(), size_t(0));
+    }
+
+    void noGlideWhenInertiaIsOff()
+    {
+        ScrollOptions o;
+        o.inertia = false;
+        makeScroller(o);
+        slide(10);
+        up(0);
+        wheel.events.clear();
+        settle(3);
+        QCOMPARE(wheel.events.size(), size_t(0));
+        QVERIFY(!s->needsTick());
+    }
+
+    void aLongerGlideTravelsFurther()
+    {
+        auto glideDistance = [&](double seconds) {
+            ScrollOptions o;
+            o.glideSeconds = seconds;
+            makeScroller(o);
+            slide(10);
+            up(0);
+            wheel.events.clear();
+            settle(8);
+            return wheel.sum(EV_REL, REL_WHEEL_HI_RES);
+        };
+        QVERIFY(glideDistance(2.0) > glideDistance(0.5) * 2);
+    }
+
+    void touchingTheStripAgainStopsTheGlide()
+    {
+        slide(10);
+        up(0);
+        settle(0.1);
+        down(0, 2, 500, 400);   // a new finger anywhere
+        wheel.events.clear();
+        settle(1);
+        QCOMPARE(wheel.events.size(), size_t(0));
+    }
+
+    void cruiseGlidesToAStopAfterLifting()
+    {
+        makeScroller({12, 5, false, true});
+        down(0, 1, 500, 50);
+        moveTo(0, 800, 50);
+        const double rate = s->cruiseRate();
+        QVERIFY(rate > 2);
+        settle(0.2);
+        up(0);
+        wheel.events.clear();
+        settle(0.1);
+        QVERIFY(wheel.sum(EV_REL, REL_WHEEL_HI_RES) > 0);   // keeps going at roughly the cruise speed
+        settle(5);
+        wheel.events.clear();
+        settle(1);
+        QCOMPARE(wheel.events.size(), size_t(0));
+    }
+
     void cruiseNeverStartsFromOutsideTheStrip()
     {
         makeScroller({12, 5, false, true});
@@ -383,6 +509,8 @@ private slots:
         c.deadMm = 3;
         c.cruiseStart = 4.5;
         c.cruiseMax = 90;
+        c.inertia = false;
+        c.glideSeconds = 1.8;
         QVERIFY(c.save(path));
         QCOMPARE(Config::load(path), c);
     }
@@ -400,6 +528,9 @@ private slots:
         QCOMPARE(d.deadMm, Config::kMaxDeadMm);
         QCOMPARE(d.cruiseStart, Config::kMinCruiseStart);
         QCOMPARE(d.cruiseMax, Config::kMaxCruiseMax);
+        writeFile(dir.filePath("wild3.conf"), "[General]\nglide_seconds=99\n");
+        QCOMPARE(Config::load(dir.filePath("wild3.conf")).glideSeconds, Config::kMaxGlideSeconds);
+        QVERIFY(Config::load(dir.filePath("missing.conf")).inertia);   // on unless turned off
     }
 
     void statusRoundTripsAndNoticesDeadProcesses()

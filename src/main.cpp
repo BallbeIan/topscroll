@@ -4,6 +4,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QQuickWindow>
+#include <QTimer>
 
 #include <cstdio>
 
@@ -91,6 +93,25 @@ int runGui(int argc, char **argv)
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app,
                      [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     engine.load(QUrl("qrc:/Main.qml"));
+
+    // For the README: TOPSCROLL_SCREENSHOT=out.png [TOPSCROLL_SIZE=WxH] [TOPSCROLL_HELP=1] saves the
+    // window once it has settled and quits. See bin/screenshot.
+    const QString shot = qEnvironmentVariable("TOPSCROLL_SCREENSHOT");
+    if (!shot.isEmpty() && !engine.rootObjects().isEmpty()) {
+        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        const QStringList size = qEnvironmentVariable("TOPSCROLL_SIZE").split('x');
+        if (window && size.size() == 2) {
+            window->resize(size[0].toInt(), size[1].toInt());
+        }
+        if (window && qEnvironmentVariableIsSet("TOPSCROLL_HELP")) {
+            if (QObject *help = window->findChild<QObject *>("help"))
+                QMetaObject::invokeMethod(help, "open");
+        }
+        QTimer::singleShot(1800, &app, [window, shot, &app] {
+            const bool ok = window && window->grabWindow().save(shot);
+            app.exit(ok ? 0 : 1);
+        });
+    }
     return app.exec();
 }
 

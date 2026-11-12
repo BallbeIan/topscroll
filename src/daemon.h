@@ -45,7 +45,7 @@ private:
     QFileSystemWatcher m_watcher;
     QTimer m_reload;   // debounces bursts of file events into one reload
     QTimer m_retry;    // looks for a touchpad again while none is attached
-    QTimer m_tick;     // advances cruising; runs only while a finger is cruising
+    QTimer m_tick;     // advances cruising and glides; runs only while needed
     QElapsedTimer m_clock;
 
     int m_fd = -1;

@@ -33,5 +33,10 @@
   "Top speed": "Tophastighed",
   "%1 notches per second": "%1 trin i sekundet",
   "Reset to defaults": "Nulstil til standard",
-  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Små bevægelser omkring det sted, du rørte, ignoreres. Ud over det begynder den at scrolle med det samme."
+  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Små bevægelser omkring det sted, du rørte, ignoreres. Ud over det begynder den at scrolle med det samme.",
+  "Glide": "Glid",
+  "Keep coasting after you lift your finger, then ease to a stop.": "Fortsæt med at glide, når du løfter fingeren, og bremse så blødt op.",
+  "Glide length": "Glidelængde",
+  "%1 s": "%1 s",
+  "Turn glide on or off": "Slå glid til eller fra"
 }

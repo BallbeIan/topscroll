@@ -379,6 +379,22 @@ ApplicationWindow {
                     on: backend.invert
                     onToggled: v => backend.invert = v
                 }
+                SwitchRow {
+                    label: qsTr("Glide")
+                    hint: qsTr("Keep coasting after you lift your finger, then ease to a stop.")
+                    on: backend.inertia
+                    onToggled: v => backend.inertia = v
+                }
+                SliderRow {
+                    label: qsTr("Glide length")
+                    valueText: qsTr("%1 s").arg(backend.glideSeconds.toLocaleString(Qt.locale(), 'f', 1))
+                    current: backend.glideSeconds
+                    from: 0.2; to: 3; stepSize: 0.1
+                    enabled: backend.inertia
+                    opacity: backend.inertia ? 1 : 0.4
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                    onMoved: v => backend.glideSeconds = v
+                }
             }
 
             // --- cruise ---------------------------------------------------
@@ -453,6 +469,7 @@ ApplicationWindow {
 
     Popup {
         id: help
+        objectName: "help"
         modal: true
         anchors.centerIn: parent
         padding: 20
@@ -469,6 +486,7 @@ ApplicationWindow {
                     { key: "Space", what: qsTr("Turn scrolling on or off") },
                     { key: "R", what: qsTr("Reverse direction") },
                     { key: "C", what: qsTr("Turn cruise on or off") },
+                    { key: "G", what: qsTr("Turn glide on or off") },
                     { key: "Up / Down", what: qsTr("Taller or shorter strip") },
                     { key: "Left / Right", what: qsTr("Slower or faster scrolling") },
                     { key: "?", what: qsTr("Show this help") },
@@ -489,6 +507,7 @@ ApplicationWindow {
     Shortcut { sequences: ["Space"]; context: Qt.ApplicationShortcut; onActivated: backend.enabled = !backend.enabled }
     Shortcut { sequences: ["C"]; context: Qt.ApplicationShortcut; onActivated: backend.cruise = !backend.cruise }
     Shortcut { sequences: ["R"]; context: Qt.ApplicationShortcut; onActivated: backend.invert = !backend.invert }
+    Shortcut { sequences: ["G"]; context: Qt.ApplicationShortcut; onActivated: backend.inertia = !backend.inertia }
     Shortcut { sequences: ["Up"]; context: Qt.ApplicationShortcut; onActivated: backend.stripMm = win.nudge(backend.stripMm, 1, 4, 30) }
     Shortcut { sequences: ["Down"]; context: Qt.ApplicationShortcut; onActivated: backend.stripMm = win.nudge(backend.stripMm, -1, 4, 30) }
     Shortcut { sequences: ["Right"]; context: Qt.ApplicationShortcut; onActivated: backend.mmPerNotch = win.nudge(backend.mmPerNotch, -0.5, 2, 12) }

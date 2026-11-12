@@ -21,6 +21,7 @@ void Config::clamp()
     deadMm = std::clamp(deadMm, kMinDeadMm, kMaxDeadMm);
     cruiseStart = std::clamp(cruiseStart, kMinCruiseStart, kMaxCruiseStart);
     cruiseMax = std::clamp(cruiseMax, kMinCruiseMax, kMaxCruiseMax);
+    glideSeconds = std::clamp(glideSeconds, kMinGlideSeconds, kMaxGlideSeconds);
 }
 
 Config Config::load(const QString &path)
@@ -36,6 +37,8 @@ Config Config::load(const QString &path)
         c.deadMm = s.value("dead_mm", c.deadMm).toDouble();
         c.cruiseStart = s.value("cruise_start", c.cruiseStart).toDouble();
         c.cruiseMax = s.value("cruise_max", c.cruiseMax).toDouble();
+        c.inertia = s.value("inertia", c.inertia).toBool();
+        c.glideSeconds = s.value("glide_seconds", c.glideSeconds).toDouble();
     }
     c.clamp();
     return c;
@@ -49,7 +52,7 @@ bool Config::save(const QString &path) const
     QSaveFile f(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
         return false;
-    const QString text = QStringLiteral("[General]\nenabled=%1\nstrip_mm=%2\nmm_per_notch=%3\ninvert=%4\ncruise=%5\ndead_mm=%6\ncruise_start=%7\ncruise_max=%8\n")
+    const QString text = QStringLiteral("[General]\nenabled=%1\nstrip_mm=%2\nmm_per_notch=%3\ninvert=%4\ncruise=%5\ndead_mm=%6\ncruise_start=%7\ncruise_max=%8\ninertia=%9\nglide_seconds=%10\n")
                              .arg(enabled ? "true" : "false")
                              .arg(stripMm, 0, 'f', 1)
                              .arg(mmPerNotch, 0, 'f', 1)
@@ -57,7 +60,9 @@ bool Config::save(const QString &path) const
                              .arg(cruise ? "true" : "false")
                              .arg(deadMm, 0, 'f', 1)
                              .arg(cruiseStart, 0, 'f', 1)
-                             .arg(cruiseMax, 0, 'f', 0);
+                             .arg(cruiseMax, 0, 'f', 0)
+                             .arg(inertia ? "true" : "false")
+                             .arg(glideSeconds, 0, 'f', 1);
     f.write(text.toUtf8());
     return f.commit();
 }

@@ -20,6 +20,8 @@ class Backend : public QObject {
     Q_PROPERTY(double deadMm READ deadMm WRITE setDeadMm NOTIFY configChanged)
     Q_PROPERTY(double cruiseStart READ cruiseStart WRITE setCruiseStart NOTIFY configChanged)
     Q_PROPERTY(double cruiseMax READ cruiseMax WRITE setCruiseMax NOTIFY configChanged)
+    Q_PROPERTY(bool inertia READ inertia WRITE setInertia NOTIFY configChanged)
+    Q_PROPERTY(double glideSeconds READ glideSeconds WRITE setGlideSeconds NOTIFY configChanged)
 
     // active, disabled, searching, denied, uinput, busy, or stopped (no daemon process)
     Q_PROPERTY(QString state READ state NOTIFY statusChanged)
@@ -42,6 +44,8 @@ public:
     double deadMm() const { return m_config.deadMm; }
     double cruiseStart() const { return m_config.cruiseStart; }
     double cruiseMax() const { return m_config.cruiseMax; }
+    bool inertia() const { return m_config.inertia; }
+    double glideSeconds() const { return m_config.glideSeconds; }
     void setEnabled(bool v);
     void setStripMm(double v);
     void setMmPerNotch(double v);
@@ -50,6 +54,8 @@ public:
     void setDeadMm(double v);
     void setCruiseStart(double v);
     void setCruiseMax(double v);
+    void setInertia(bool v);
+    void setGlideSeconds(double v);
 
     QString state() const { return m_state; }
     QString device() const { return m_status.device; }

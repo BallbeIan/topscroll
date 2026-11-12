@@ -33,5 +33,10 @@
   "Top speed": "Vitesse maximale",
   "%1 notches per second": "%1 crans par seconde",
   "Reset to defaults": "Rétablir les valeurs par défaut",
-  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Les petits mouvements autour du point de contact sont ignorés. Au-delà, le défilement démarre aussitôt."
+  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Les petits mouvements autour du point de contact sont ignorés. Au-delà, le défilement démarre aussitôt.",
+  "Glide": "Inertie",
+  "Keep coasting after you lift your finger, then ease to a stop.": "Continue de défiler après avoir levé le doigt, puis s'arrête en douceur.",
+  "Glide length": "Durée de l'inertie",
+  "%1 s": "%1 s",
+  "Turn glide on or off": "Activer ou désactiver l'inertie"
 }

@@ -16,6 +16,12 @@ constexpr int kHiresPerNotch = 120;
 // further mm adds kCruiseGain times the speed setting's notches per mm, up to the
 // ceiling. The dead zone, start speed and ceiling are all user settings.
 constexpr double kCruiseGain = 2.0;
+
+// Inertia: a sliding finger's speed is smoothed over kVelocitySmoothing seconds,
+// so a finger that paused before lifting leaves no glide. A glide ends once it
+// slows below kMinGlide (hires units per second, a quarter of a notch).
+constexpr double kVelocitySmoothing = 0.05;
+constexpr double kMinGlide = 30.0;
 }
 
 Scroller::Scroller(EventSink &touchOut, EventSink &scrollOut, AxisInfo x, AxisInfo y,
@@ -40,6 +46,10 @@ void Scroller::setOptions(const ScrollOptions &o)
     m_deadMm = o.deadMm;
     m_cruiseStart = o.cruiseStart;
     m_cruiseMax = o.cruiseMax;
+    m_inertia = o.inertia;
+    m_tau = std::max(0.05, o.glideSeconds) / 3.0;
+    if (!m_inertia)
+        m_glide = m_vel = 0;
 }
 
 double Scroller::extentMm(const AxisInfo &a)
@@ -101,6 +111,8 @@ void Scroller::onAbs(int code, int value)
             auto it = m_slots.find(m_cur);
             if (it == m_slots.end())
                 return;
+            if (it->second.state == State::Captured)
+                beginGlide();
             Slot s = std::move(it->second);
             m_slots.erase(it);
             if (s.state == State::Pending)
@@ -108,6 +120,7 @@ void Scroller::onAbs(int code, int value)
             if (s.state != State::Captured)
                 sendAbs(m_cur, ABS_MT_TRACKING_ID, -1);
         } else {
+            m_glide = 0;   // any new touch stops a glide, like putting a hand on a spinning wheel
             Slot s;
             s.buffer.emplace_back(ABS_MT_TRACKING_ID, value);
             m_slots[m_cur] = std::move(s);
@@ -152,6 +165,7 @@ void Scroller::endFrame()
         });
         if (alone && s.y - m_yInfo.min <= m_strip) {
             s.state = State::Captured;
+            m_vel = 0;
             s.anchorX = s.x;
             s.buffer.clear();
         } else {
@@ -184,7 +198,9 @@ void Scroller::scroll()
         return;
     const double mm = m_dx / m_xPerMm;
     m_dx = 0;
-    addHires(mm * m_hiresPerMm * m_sign);
+    const double hires = mm * m_hiresPerMm * m_sign;
+    m_tickHires += hires;
+    addHires(hires);
 }
 
 double Scroller::cruiseRate() const
@@ -208,12 +224,50 @@ double Scroller::cruiseRate() const
     return best * m_sign;
 }
 
+bool Scroller::hasCaptured() const
+{
+    return std::any_of(m_slots.begin(), m_slots.end(),
+                       [](const auto &t) { return t.second.state == State::Captured; });
+}
+
+bool Scroller::needsTick() const
+{
+    return cruising() || m_glide != 0 || (m_inertia && !m_cruise && hasCaptured());
+}
+
+void Scroller::beginGlide()
+{
+    m_glide = 0;
+    if (!m_inertia)
+        return;
+    const double v = m_cruise ? cruiseRate() * kHiresPerNotch : m_vel;
+    if (std::abs(v) >= kMinGlide)
+        m_glide = v;
+    m_vel = 0;
+}
+
 void Scroller::tick(double seconds)
 {
-    const double rate = cruiseRate();
-    if (rate == 0 || seconds <= 0)
+    if (seconds <= 0)
         return;
-    addHires(rate * kHiresPerNotch * seconds);
+
+    if (m_glide != 0) {
+        addHires(m_glide * seconds);
+        m_glide *= std::exp(-seconds / m_tau);
+        if (std::abs(m_glide) < kMinGlide)
+            m_glide = 0;
+    }
+
+    // Measure how fast a finger is sliding, so lifting it can carry that speed on.
+    if (m_inertia && !m_cruise && hasCaptured()) {
+        const double blend = 1 - std::exp(-seconds / kVelocitySmoothing);
+        m_vel += blend * (m_tickHires / seconds - m_vel);
+    }
+    m_tickHires = 0;
+
+    const double rate = cruiseRate();
+    if (rate != 0)
+        addHires(rate * kHiresPerNotch * seconds);
 }
 
 void Scroller::addHires(double hires)
@@ -240,6 +294,7 @@ void Scroller::reset()
         if (s.state == State::Forwarded)
             sendAbs(slot, ABS_MT_TRACKING_ID, -1);
     m_slots.clear();
+    m_glide = m_vel = 0;
     m_forwarded = 0;
     send(EV_KEY, BTN_TOUCH, 0);
     for (int btn : kToolButtons)

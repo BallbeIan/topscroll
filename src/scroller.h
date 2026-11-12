@@ -22,6 +22,10 @@ struct ScrollOptions {
     double deadMm = 1.5;          // cruise: movement this close to where the finger landed is ignored
     double cruiseStart = 2.0;     // cruise: notches per second the moment it leaves the dead zone
     double cruiseMax = 60.0;      // cruise: speed ceiling, in notches per second
+    // Keep scrolling after the finger lifts, easing to a stop over roughly
+    // `glideSeconds`. Applies to both normal scrolling and cruise.
+    bool inertia = true;
+    double glideSeconds = 1.0;
 };
 
 // Routes touchpad events. Every touch is re-emitted through `touchOut`, except
@@ -41,6 +45,9 @@ public:
     void tick(double seconds);
     // True while a finger in the strip is far enough from where it landed to scroll.
     bool cruising() const { return cruiseRate() != 0; }
+    // True when the caller should keep calling tick(): a finger is cruising, a
+    // finger is sliding (so its speed can be measured) or a glide is under way.
+    bool needsTick() const;
     // Cruise speed in wheel notches per second, signed like the wheel (positive is up).
     double cruiseRate() const;
 
@@ -66,6 +73,8 @@ private:
     void scroll();
     void addHires(double hires);
     void reset();
+    void beginGlide();
+    bool hasCaptured() const;
 
     EventSink &m_touch;
     EventSink &m_scroll;
@@ -78,6 +87,11 @@ private:
     double m_deadMm = 1.5;
     double m_cruiseStart = 2.0;
     double m_cruiseMax = 60.0;
+    bool m_inertia = true;
+    double m_tau = 1.0 / 3;       // glide decay time constant, seconds
+    double m_vel = 0;             // measured speed of a sliding finger, hires units per second
+    double m_glide = 0;           // current glide speed, hires units per second
+    double m_tickHires = 0;       // scrolled directly since the last tick
     int m_sign = 1;
 
     std::map<int, Slot> m_slots;

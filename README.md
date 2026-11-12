@@ -10,7 +10,7 @@ Slide right to scroll up, slide left to scroll down. Everything else on the touc
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
-<img src="docs/images/settings.png" alt="The topscroll settings window: an on/off switch, a status card, a touchpad drawn to scale with the scroll strip shaded and a demo finger, and sliders for strip height, scroll speed and the cruise dead zone, start speed and top speed" width="340">
+<img src="docs/images/settings.png" alt="The topscroll settings window: an on/off switch, a status card, a touchpad drawn to scale with the scroll strip shaded and a demo finger, and sliders for strip height, scroll speed, glide length and the cruise dead zone, start speed and top speed" width="340">
 <img src="docs/images/shortcuts.png" alt="The keyboard shortcuts overlay" width="340">
 
 </div>
@@ -20,7 +20,8 @@ Slide right to scroll up, slide left to scroll down. Everything else on the touc
 ## Highlights
 
 - **One finger is enough.** Put a finger down in the strip along the top edge and slide. It scrolls like a mouse wheel, in every app, on Wayland and X11.
-- **Optional cruise mode.** Turn on Cruise and topscroll remembers where your finger landed. A small dead zone around that spot ignores accidental movement; slide past it and it starts scrolling at once and keeps going while you rest, faster the further you slide. Lift to stop. The dead zone, start speed and top speed are all adjustable.
+- **Glides to a stop.** Lift your finger mid-slide and scrolling coasts on and eases out, like a flicked wheel. Adjustable, or off.
+- **Optional cruise mode.** Turn on Cruise and topscroll remembers where your finger landed. A small dead zone around that spot ignores accidental movement; slide past it and it starts scrolling at once and keeps going while you rest, faster the further you slide. Lift to stop (or to glide to a stop, with Glide on). The dead zone, start speed and top speed are all adjustable.
 - **Nothing else changes.** A touch that starts anywhere else is passed through untouched, and so are clicks and multi-finger gestures. A second finger never gets captured by the strip.
 - **See what you are tuning.** The settings window draws your touchpad to scale with the strip shaded and a demo finger showing the gesture (with the dead zone while cruise is on). Every change applies instantly, and one button resets everything.
 - **Runs in the background.** A small systemd user service does the work, so scrolling survives closing the window and comes back at every login. It finds the touchpad again after a replug or resume.
@@ -54,7 +55,9 @@ sudo pacman -R topscroll
 | **Strip height** | How far down from the top edge the scroll strip reaches (4 to 30 mm, 12 by default). |
 | **Scroll speed** | How far your finger travels per wheel notch (2 to 12 mm, 5 by default). |
 | **Reverse direction** | Right scrolls down instead of up. |
-| **Cruise** | Off by default. The spot where your finger lands is remembered. Stay inside the dead zone around it (left or right) and nothing happens, so small accidental movements are ignored. Slide past it and it starts scrolling at once and keeps going while your finger rests, faster the further you slide. Slide back toward the start to slow down, past it to reverse, and lift your finger to stop. While cruise is on, moving the finger doesn't also scroll directly. |
+| **Glide** | On by default. When you lift your finger, scrolling keeps coasting at the speed you had and eases to a stop, like flicking a wheel. Pausing before you lift leaves no glide, and touching the pad again stops it. Works with cruise too. |
+| **Glide length** | Roughly how long a glide lasts (0.2 to 3 seconds, 1 by default). |
+| **Cruise** | Off by default. The spot where your finger lands is remembered. Stay inside the dead zone around it (left or right) and nothing happens, so small accidental movements are ignored. Slide past it and it starts scrolling at once and keeps going while your finger rests, faster the further you slide. Slide back toward the start to slow down, past it to reverse, and lift your finger to stop, or to let it glide to a stop if Glide is on. While cruise is on, moving the finger doesn't also scroll directly. |
 | **Dead zone** | How far from where you landed the finger can move before cruise starts (0.5 to 8 mm, 1.5 by default). |
 | **Start speed** | How fast cruise scrolls the moment it leaves the dead zone (0.5 to 10 notches per second, 2 by default). |
 | **Top speed** | The ceiling for cruise (10 to 120 notches per second, 60 by default). The **Scroll speed** setting controls how quickly it climbs towards it. |
@@ -69,6 +72,7 @@ Settings are saved as you change them to `~/.config/topscroll/topscroll.conf`, a
 | `Space` | Turn scrolling on or off |
 | `R` | Reverse direction |
 | `C` | Turn cruise on or off |
+| `G` | Turn glide on or off |
 | `Up` / `Down` | Taller or shorter strip |
 | `Left` / `Right` | Slower or faster scrolling |
 | `?` | Show shortcuts |
@@ -137,6 +141,7 @@ git clone https://github.com/BallbeIan/topscroll.git
 cd topscroll
 bin/build          # qmake6 + make into build/topscroll
 bin/test           # Qt Test suite, offscreen, never touches real input devices
+bin/screenshot docs/images/settings.png   # regenerate the README screenshot from the real app (QT_SCALE_FACTOR=2 for sharper)
 ```
 
 When trying `build/topscroll daemon` by hand, point `XDG_CONFIG_HOME` and `XDG_RUNTIME_DIR` at a throwaway directory so it does not touch your real settings.
@@ -147,7 +152,6 @@ English, Danish, German, Spanish and French so far. Other languages show English
 
 ## Roadmap
 
-- [ ] Inertia: let scrolling glide to a stop after lifting
 - [ ] Horizontal scrolling option
 - [ ] A release tarball and an `omarchy-pkgs` entry
 

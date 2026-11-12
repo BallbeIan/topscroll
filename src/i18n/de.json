@@ -33,5 +33,10 @@
   "Top speed": "Höchstgeschwindigkeit",
   "%1 notches per second": "%1 Rastungen pro Sekunde",
   "Reset to defaults": "Auf Standard zurücksetzen",
-  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Kleine Bewegungen rund um die Berührungsstelle werden ignoriert. Darüber hinaus scrollt es sofort."
+  "Small movements around where you touched down are ignored. Past that, it starts scrolling at once.": "Kleine Bewegungen rund um die Berührungsstelle werden ignoriert. Darüber hinaus scrollt es sofort.",
+  "Glide": "Gleiten",
+  "Keep coasting after you lift your finger, then ease to a stop.": "Scrollt nach dem Abheben des Fingers weiter und läuft dann sanft aus.",
+  "Glide length": "Gleitdauer",
+  "%1 s": "%1 s",
+  "Turn glide on or off": "Gleiten ein- oder ausschalten"
 }
