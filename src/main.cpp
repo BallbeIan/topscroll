@@ -94,7 +94,7 @@ int runGui(int argc, char **argv)
                      [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     engine.load(QUrl("qrc:/Main.qml"));
 
-    // For the README: TOPSCROLL_SCREENSHOT=out.png [TOPSCROLL_SIZE=WxH] [TOPSCROLL_HELP=1] saves the
+    // For the README: TOPSCROLL_SCREENSHOT=out.png [TOPSCROLL_SIZE=WxH] [TOPSCROLL_HELP=1] [TOPSCROLL_FINE=1] saves the
     // window once it has settled and quits. See bin/screenshot.
     const QString shot = qEnvironmentVariable("TOPSCROLL_SCREENSHOT");
     if (!shot.isEmpty() && !engine.rootObjects().isEmpty()) {
@@ -103,6 +103,8 @@ int runGui(int argc, char **argv)
         if (window && size.size() == 2) {
             window->resize(size[0].toInt(), size[1].toInt());
         }
+        if (window && qEnvironmentVariableIsSet("TOPSCROLL_FINE"))
+            window->setProperty("fineTune", true);
         if (window && qEnvironmentVariableIsSet("TOPSCROLL_HELP")) {
             if (QObject *help = window->findChild<QObject *>("help"))
                 QMetaObject::invokeMethod(help, "open");
