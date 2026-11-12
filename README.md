@@ -20,6 +20,7 @@ Slide right to scroll up, slide left to scroll down. Everything else on the touc
 ## Highlights
 
 - **One finger is enough.** Put a finger down in the strip along the top edge and slide. It scrolls like a mouse wheel, in every app, on Wayland and X11.
+- **Optional cruise mode.** Turn on Cruise and a finger resting on the strip keeps scrolling, faster the further you slide. Lift to stop.
 - **Nothing else changes.** A touch that starts anywhere else is passed through untouched, and so are clicks and multi-finger gestures. A second finger never gets captured by the strip.
 - **See what you are tuning.** The settings window draws your touchpad to scale with the strip shaded, and every change applies instantly.
 - **Runs in the background.** A small systemd user service does the work, so scrolling survives closing the window and comes back at every login. It finds the touchpad again after a replug or resume.
@@ -53,6 +54,7 @@ sudo pacman -R topscroll
 | **Strip height** | How far down from the top edge the scroll strip reaches (4 to 30 mm, 12 by default). |
 | **Scroll speed** | How far your finger travels per wheel notch (2 to 12 mm, 5 by default). |
 | **Reverse direction** | Right scrolls down instead of up. |
+| **Cruise** | Off by default. Keep your finger down and it keeps scrolling, with no need to keep moving it. The further you slide from where you touched down, the faster it goes. Slide back toward the start to slow down, past it to reverse, and lift your finger to stop. Small movements (under 4 mm) never start it, and the speed is capped at 60 notches per second. The **Scroll speed** setting scales it. |
 
 Settings are saved as you change them to `~/.config/topscroll/topscroll.conf`, and the service picks them up immediately.
 
@@ -62,6 +64,7 @@ Settings are saved as you change them to `~/.config/topscroll/topscroll.conf`, a
 |---|---|
 | `Space` | Turn scrolling on or off |
 | `R` | Reverse direction |
+| `C` | Turn cruise on or off |
 | `Up` / `Down` | Taller or shorter strip |
 | `Left` / `Right` | Slower or faster scrolling |
 | `?` | Show shortcuts |
@@ -140,7 +143,7 @@ English, Danish, German, Spanish and French so far. Other languages show English
 
 ## Roadmap
 
-- [ ] Scroll acceleration and inertia
+- [ ] Inertia: let scrolling glide to a stop after lifting
 - [ ] Horizontal scrolling option
 - [ ] A release tarball and an `omarchy-pkgs` entry
 
