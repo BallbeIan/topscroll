@@ -50,7 +50,7 @@ public:
     void setOptions(const ScrollOptions &options);
     // How many multitouch slots the touch output has (ABS_MT_SLOT maximum + 1).
     // Touchpad-style scrolling borrows the two highest for its synthetic fingers.
-    void setSlotCount(int slots) { m_slotCount = slots; }
+    void setSlotCount(int count) { m_slotCount = count; }
     void handle(int type, int code, int value);
 
     // Advances cruising by `seconds`. The caller supplies the clock, so tests
