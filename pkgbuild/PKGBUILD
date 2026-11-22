@@ -1,7 +1,7 @@
 # Builds from the working tree one directory up, so `bin/install` packages
 # whatever you have checked out. A release PKGBUILD would fetch the tag tarball.
 pkgname=topscroll
-pkgver=0.1.0
+pkgver=2.0.0
 pkgrel=1
 pkgdesc="Scroll with one finger along the touchpad's top edge"
 arch=(x86_64)

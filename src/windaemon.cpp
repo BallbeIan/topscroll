@@ -175,7 +175,8 @@ ScrollOptions Daemon::options() const
 {
     return {m_config.stripMm, m_config.mmPerNotch, m_config.invert, m_config.cruise,
             m_config.deadMm, m_config.cruiseStart, m_config.cruiseMax,
-            m_config.inertia, m_config.glideSeconds};
+            m_config.inertia, m_config.glideSeconds,
+            m_config.smooth, m_config.smoothSeconds, m_config.touchpadStyle};
 }
 
 void Daemon::applyConfig()

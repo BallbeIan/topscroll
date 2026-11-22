@@ -85,6 +85,40 @@ class TopscrollTests : public QObject {
         wheel.events.clear();
         s = std::make_unique<Scroller>(touch, wheel, AxisInfo{0, 1000, 10}, AxisInfo{0, 700, 10}, o);
     }
+    void makeTouchpadStyle(ScrollOptions o = {})
+    {
+        o.touchpadStyle = true;
+        makeScroller(o);
+        s->setSlotCount(5);   // synthetic fingers go in slots 4 and 3
+    }
+    // The last value of every ABS code per slot, as the touch output would hold it.
+    static std::map<int, std::map<int, int>> slotState(const RecordingSink &sink)
+    {
+        std::map<int, std::map<int, int>> state;
+        int slot = 0;
+        for (const auto &e : sink.events) {
+            if (e.type != EV_ABS)
+                continue;
+            if (e.code == ABS_MT_SLOT)
+                slot = e.value;
+            else
+                state[slot][e.code] = e.value;
+        }
+        return state;
+    }
+    static int lastKey(const RecordingSink &sink, int code)
+    {
+        int v = -1;
+        for (const auto &e : sink.events)
+            if (e.type == EV_KEY && e.code == code)
+                v = e.value;
+        return v;
+    }
+    void ticks(int n, double seconds = 0.01)
+    {
+        for (int i = 0; i < n; ++i)
+            s->tick(seconds);
+    }
 
 private slots:
     void init() { makeScroller(); }
@@ -480,6 +514,205 @@ private slots:
         QVERIFY(!s->cruising());
     }
 
+    // --- smooth scrolling ---
+
+    void smoothScrollingSpreadsMovementOverTime()
+    {
+        ScrollOptions o;
+        o.smooth = true;
+        o.inertia = false;
+        makeScroller(o);
+        down(0, 1, 100, 50);
+        moveTo(0, 200, 50);   // 10 mm: two notches' worth
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL_HI_RES), 0);   // waits for the clock
+        QVERIFY(s->needsTick());
+        s->tick(0.01);
+        const int first = wheel.sum(EV_REL, REL_WHEEL_HI_RES);
+        QVERIFY(first > 0 && first < 240);
+        ticks(100);
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL_HI_RES), 240);   // all of it arrives, none lost
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 2);
+        up(0);
+        ticks(5);
+        QVERIFY(!s->needsTick());
+    }
+
+    void longerSmoothingEasesOutMoreSlowly()
+    {
+        int sent[2];
+        const double seconds[2] = {0.06, 0.3};
+        for (int i = 0; i < 2; ++i) {
+            ScrollOptions o;
+            o.smooth = true;
+            o.smoothSeconds = seconds[i];
+            makeScroller(o);
+            down(0, 1, 100, 50);
+            moveTo(0, 200, 50);
+            ticks(5);
+            sent[i] = wheel.sum(EV_REL, REL_WHEEL_HI_RES);
+        }
+        QVERIFY(sent[0] > sent[1]);
+    }
+
+    void turningSmoothingOffSendsWhatIsWaiting()
+    {
+        ScrollOptions o;
+        o.smooth = true;
+        makeScroller(o);
+        down(0, 1, 100, 50);
+        moveTo(0, 200, 50);
+        o.smooth = false;
+        s->setOptions(o);
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL_HI_RES), 240);
+    }
+
+    void smoothingAlsoAppliesToCruise()
+    {
+        ScrollOptions o;
+        o.smooth = true;
+        o.cruise = true;
+        makeScroller(o);
+        down(0, 1, 500, 50);
+        moveTo(0, 600, 50);
+        s->tick(0.01);
+        const double rate = s->cruiseRate();
+        ticks(200);
+        // After two seconds the eased output has caught up with the steady cruise speed.
+        const int before = wheel.sum(EV_REL, REL_WHEEL_HI_RES);
+        ticks(100);
+        const int perSecond = wheel.sum(EV_REL, REL_WHEEL_HI_RES) - before;
+        QVERIFY(qAbs(perSecond - rate * 120) <= 2);
+    }
+
+    // --- touchpad-style scrolling: synthetic fingers in slots 4 and 3 ---
+
+    void touchpadStyleTurnsTheStripIntoATwoFingerSwipe()
+    {
+        makeTouchpadStyle();
+        down(0, 1, 100, 50);
+        auto st = slotState(touch);
+        QVERIFY(st[4][ABS_MT_TRACKING_ID] >= 0);
+        QVERIFY(st[3][ABS_MT_TRACKING_ID] >= 0);
+        QVERIFY(!st.count(0));   // the real finger itself is never forwarded
+        QCOMPARE(lastKey(touch, BTN_TOOL_DOUBLETAP), 1);
+        QCOMPARE(lastKey(touch, BTN_TOUCH), 1);
+        const int y0 = st[4][ABS_MT_POSITION_Y];
+        QCOMPARE(y0, 350);   // landed in the middle of the pad
+
+        moveTo(0, 200, 50);   // 10 mm right scrolls up: both fingers go 10 mm up the pad
+        st = slotState(touch);
+        QCOMPARE(st[4][ABS_MT_POSITION_Y], y0 - 100);
+        QCOMPARE(st[3][ABS_MT_POSITION_Y], y0 - 100);
+        QVERIFY(wheel.events.empty());
+
+        up(0);
+        st = slotState(touch);
+        QCOMPARE(st[4][ABS_MT_TRACKING_ID], -1);
+        QCOMPARE(st[3][ABS_MT_TRACKING_ID], -1);
+        QCOMPARE(lastKey(touch, BTN_TOUCH), 0);
+        ticks(50, 0.02);
+        QVERIFY(wheel.events.empty());   // coasting is up to the app now
+    }
+
+    void touchpadStyleFollowsInvertAndSpeed()
+    {
+        ScrollOptions o;
+        o.invert = true;
+        o.mmPerNotch = 2.5;   // twice the default speed
+        makeTouchpadStyle(o);
+        down(0, 1, 100, 50);
+        moveTo(0, 200, 50);
+        QCOMPARE(slotState(touch)[4][ABS_MT_POSITION_Y], 350 + 200);
+    }
+
+    void touchpadStyleLandsAgainWhenItRunsOutOfRoom()
+    {
+        makeTouchpadStyle();
+        down(0, 1, 50, 50);
+        moveTo(0, 350, 50);   // 30 mm: more than the room above the middle
+        QCOMPARE(slotState(touch)[4][ABS_MT_TRACKING_ID], -1);
+        QCOMPARE(lastKey(touch, BTN_TOUCH), 0);
+        moveTo(0, 351, 50);   // next frame: down again in the middle
+        auto st = slotState(touch);
+        QVERIFY(st[4][ABS_MT_TRACKING_ID] >= 0);
+        QCOMPARE(st[4][ABS_MT_POSITION_Y], 350);
+        moveTo(0, 352, 50);   // and the movement that didn't fit carries on
+        QVERIFY(slotState(touch)[4][ABS_MT_POSITION_Y] < 350 - 200);
+        QVERIFY(wheel.events.empty());
+    }
+
+    void touchpadStyleHandsOverToTheWheelWhenAnotherFingerLands()
+    {
+        makeTouchpadStyle();
+        down(0, 1, 100, 50);
+        down(1, 2, 500, 400);   // an ordinary second finger
+        auto st = slotState(touch);
+        QCOMPARE(st[4][ABS_MT_TRACKING_ID], -1);
+        QCOMPARE(st[3][ABS_MT_TRACKING_ID], -1);
+        QCOMPARE(st[1][ABS_MT_TRACKING_ID], 2);
+        QCOMPARE(lastKey(touch, BTN_TOOL_FINGER), 1);   // one finger, not three
+        moveTo(0, 200, 50);
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 2);
+    }
+
+    void touchpadStyleStepsAsideWhenAnotherFingerLandsTogether()
+    {
+        makeTouchpadStyle();
+        s->handle(EV_ABS, ABS_MT_SLOT, 0);
+        s->handle(EV_ABS, ABS_MT_TRACKING_ID, 1);
+        s->handle(EV_ABS, ABS_MT_POSITION_X, 100);
+        s->handle(EV_ABS, ABS_MT_POSITION_Y, 50);    // in the strip
+        s->handle(EV_ABS, ABS_MT_SLOT, 1);
+        s->handle(EV_ABS, ABS_MT_TRACKING_ID, 2);
+        s->handle(EV_ABS, ABS_MT_POSITION_X, 500);
+        s->handle(EV_ABS, ABS_MT_POSITION_Y, 400);   // an ordinary finger, same frame
+        frame();
+        QVERIFY(!slotState(touch).count(4));
+        QCOMPARE(lastKey(touch, BTN_TOOL_FINGER), 1);
+        moveTo(0, 200, 50);
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 2);
+    }
+
+    void touchpadStyleNeedsSlotsToBorrow()
+    {
+        ScrollOptions o;
+        o.touchpadStyle = true;
+        makeScroller(o);   // slot count unknown, as on Windows
+        down(0, 1, 100, 50);
+        moveTo(0, 200, 50);
+        QCOMPARE(wheel.sum(EV_REL, REL_WHEEL), 2);
+        QVERIFY(touch.events.empty());
+    }
+
+    void touchpadStyleCopiesPressureOntoTheFingers()
+    {
+        makeTouchpadStyle();
+        s->handle(EV_ABS, ABS_MT_SLOT, 0);
+        s->handle(EV_ABS, ABS_MT_TRACKING_ID, 1);
+        s->handle(EV_ABS, ABS_MT_POSITION_X, 100);
+        s->handle(EV_ABS, ABS_MT_POSITION_Y, 50);
+        s->handle(EV_ABS, ABS_MT_PRESSURE, 40);
+        frame();
+        auto st = slotState(touch);
+        QCOMPARE(st[4][ABS_MT_PRESSURE], 40);
+        QCOMPARE(st[3][ABS_MT_PRESSURE], 40);
+        s->handle(EV_ABS, ABS_MT_PRESSURE, 55);
+        frame();
+        QCOMPARE(slotState(touch)[3][ABS_MT_PRESSURE], 55);
+    }
+
+    void touchpadStyleStepsAsideForCruise()
+    {
+        ScrollOptions o;
+        o.cruise = true;
+        makeTouchpadStyle(o);
+        down(0, 1, 500, 50);
+        moveTo(0, 600, 50);
+        ticks(10);
+        QVERIFY(wheel.sum(EV_REL, REL_WHEEL_HI_RES) > 0);
+        QVERIFY(touch.events.empty());
+    }
+
     void configRoundTripsCruise()
     {
         QTemporaryDir dir;
@@ -511,6 +744,9 @@ private slots:
         c.cruiseMax = 90;
         c.inertia = false;
         c.glideSeconds = 1.8;
+        c.smooth = false;
+        c.smoothSeconds = 0.3;
+        c.touchpadStyle = true;
         QVERIFY(c.save(path));
         QCOMPARE(Config::load(path), c);
     }
@@ -531,6 +767,10 @@ private slots:
         writeFile(dir.filePath("wild3.conf"), "[General]\nglide_seconds=99\n");
         QCOMPARE(Config::load(dir.filePath("wild3.conf")).glideSeconds, Config::kMaxGlideSeconds);
         QVERIFY(Config::load(dir.filePath("missing.conf")).inertia);   // on unless turned off
+        QVERIFY(Config::load(dir.filePath("missing.conf")).smooth);    // on unless turned off
+        QVERIFY(!Config::load(dir.filePath("missing.conf")).touchpadStyle);
+        writeFile(dir.filePath("wild4.conf"), "[General]\nsmooth_seconds=9\n");
+        QCOMPARE(Config::load(dir.filePath("wild4.conf")).smoothSeconds, Config::kMaxSmoothSeconds);
     }
 
     void statusRoundTripsAndNoticesDeadProcesses()

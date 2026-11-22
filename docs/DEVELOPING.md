@@ -6,6 +6,10 @@ Everything under the hood: how it works, how the code is laid out, how to build 
 
 libinput has no top-edge scrolling, so the daemon grabs the touchpad through evdev and re-emits every touch through a virtual touchpad. A touch that *starts* in the top strip while no other finger is down is swallowed, so the cursor does not move, and its horizontal motion becomes wheel events on a virtual mouse. It works on Wayland and X11 because it sits below the compositor.
 
+**Smooth scrolling** puts the wheel output through a short backlog that the tick clock drains exponentially (`smooth_seconds`), so bursts of movement come out as an even glide. Cruise and the smooth stop go through it too.
+
+**Touchpad-style scrolling** (Linux) skips the wheel: while a strip touch is down, the `Scroller` places two synthetic fingers in the two highest multitouch slots of the virtual touchpad and moves them up or down by the strip finger's travel, so libinput sees an ordinary two-finger scroll and apps get pixel-precise scrolling with their own kinetic coasting. The synthetic fingers copy the real finger's pressure and contact size so touch detection accepts them, land again in the middle when they run out of room, and step aside (handing over to the wheel) when another real finger lands or cruise is on.
+
 ```
  touchpad ──► Daemon ──► Scroller ──┬──► virtual touchpad   (every other touch, clicks, gestures)
  (grabbed)      ▲                   └──► virtual wheel      (touches that began in the strip)
@@ -47,6 +51,9 @@ Settings live in `~/.config/topscroll/topscroll.conf` (INI). The window writes i
 | `invert` | `false` | | Right scrolls down |
 | `inertia` | `true` | | Keep gliding after the finger lifts |
 | `glide_seconds` | `1.0` | 0.2 to 3 | Roughly how long a glide lasts |
+| `smooth` | `true` | | Spread scrolling over a moment instead of sending it at once |
+| `smooth_seconds` | `0.12` | 0.04 to 0.4 | Smooth scrolling: roughly how long each movement is eased out over |
+| `touchpad_style` | `false` | | Linux: scroll as a two-finger swipe on the virtual touchpad instead of wheel events |
 | `cruise` | `false` | | Hold to keep scrolling |
 | `dead_mm` | `1.5` | 0.5 to 8 | Cruise: movement ignored around where the finger landed |
 | `cruise_start` | `2.0` | 0.5 to 10 | Cruise: notches per second at the start |
@@ -78,7 +85,7 @@ qmake ..\topscroll.pro; nmake
 windeployqt --release --qmldir ..\src release\topscroll.exe
 ```
 
-`.github/workflows/windows.yml` does the same on every push, runs the tests, and builds the portable zip and the Inno Setup installer (`windows/topscroll.iss`). Pushing a `v*` tag attaches both to a GitHub release. `windows/topscroll.ico` is a raster version of `pkgbuild/topscroll.svg`.
+`.github/workflows/build.yml` builds and tests on Linux and Windows on every push, and builds the portable zip and the Inno Setup installer (`windows/topscroll.iss`). Pushing a `v*` tag attaches both to a GitHub release. `windows/topscroll.ico` is a raster version of `pkgbuild/topscroll.svg`.
 
 When trying `build/topscroll daemon` by hand, point `XDG_CONFIG_HOME` and `XDG_RUNTIME_DIR` at a throwaway directory so it does not touch your real settings.
 

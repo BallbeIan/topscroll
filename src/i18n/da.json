@@ -65,5 +65,14 @@
   "Ignore small movements": "Ignorer små bevægelser",
   "Touchpad: %1": "Touchpad: %1",
   "Turn hold to keep scrolling on or off": "Slå «hold for at scrolle» til eller fra",
-  "Turn smooth stop on or off": "Slå blød opbremsning til eller fra"
+  "Turn smooth stop on or off": "Slå blød opbremsning til eller fra",
+  "Smooth scrolling": "Blød scrolling",
+  "Pages glide along instead of moving in small jumps.": "Siderne glider i stedet for at flytte sig i små hop.",
+  "Touchpad-style scrolling": "Scrolling som på touchpad",
+  "Apps scroll as if you used two fingers: pixel by pixel, with their own coasting. If it goes the wrong way, turn on Flip direction.": "Apps scroller, som om du brugte to fingre: pixel for pixel og med deres egen glidning. Hvis det går den forkerte vej, så slå Vend retning til.",
+  "Smoothness": "Blødhed",
+  "How long each movement is eased out over.": "Hvor længe hver bevægelse bliver blødt udjævnet.",
+  "Snappy": "Kvik",
+  "Silky": "Silkeblød",
+  "Turn smooth scrolling on or off": "Slå blød scrolling til eller fra"
 }

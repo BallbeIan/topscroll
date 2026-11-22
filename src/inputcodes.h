@@ -35,8 +35,10 @@
 #define ABS_X 0x00
 #define ABS_Y 0x01
 #define ABS_MT_SLOT 0x2f
+#define ABS_MT_TOUCH_MAJOR 0x30
 #define ABS_MT_POSITION_X 0x35
 #define ABS_MT_POSITION_Y 0x36
 #define ABS_MT_TRACKING_ID 0x39
+#define ABS_MT_PRESSURE 0x3a
 
 #endif

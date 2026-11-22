@@ -22,6 +22,9 @@ class Backend : public QObject {
     Q_PROPERTY(double cruiseMax READ cruiseMax WRITE setCruiseMax NOTIFY configChanged)
     Q_PROPERTY(bool inertia READ inertia WRITE setInertia NOTIFY configChanged)
     Q_PROPERTY(double glideSeconds READ glideSeconds WRITE setGlideSeconds NOTIFY configChanged)
+    Q_PROPERTY(bool smooth READ smooth WRITE setSmooth NOTIFY configChanged)
+    Q_PROPERTY(double smoothSeconds READ smoothSeconds WRITE setSmoothSeconds NOTIFY configChanged)
+    Q_PROPERTY(bool touchpadStyle READ touchpadStyle WRITE setTouchpadStyle NOTIFY configChanged)
 
     // active, disabled, searching, denied, uinput, busy, or stopped (no daemon process)
     Q_PROPERTY(QString state READ state NOTIFY statusChanged)
@@ -46,6 +49,9 @@ public:
     double cruiseMax() const { return m_config.cruiseMax; }
     bool inertia() const { return m_config.inertia; }
     double glideSeconds() const { return m_config.glideSeconds; }
+    bool smooth() const { return m_config.smooth; }
+    double smoothSeconds() const { return m_config.smoothSeconds; }
+    bool touchpadStyle() const { return m_config.touchpadStyle; }
     void setEnabled(bool v);
     void setStripMm(double v);
     void setMmPerNotch(double v);
@@ -56,6 +62,9 @@ public:
     void setCruiseMax(double v);
     void setInertia(bool v);
     void setGlideSeconds(double v);
+    void setSmooth(bool v);
+    void setSmoothSeconds(double v);
+    void setTouchpadStyle(bool v);
 
     QString state() const { return m_state; }
     QString device() const { return m_status.device; }

@@ -63,7 +63,8 @@ ScrollOptions Daemon::options() const
 {
     return {m_config.stripMm, m_config.mmPerNotch, m_config.invert, m_config.cruise,
             m_config.deadMm, m_config.cruiseStart, m_config.cruiseMax,
-            m_config.inertia, m_config.glideSeconds};
+            m_config.inertia, m_config.glideSeconds,
+            m_config.smooth, m_config.smoothSeconds, m_config.touchpadStyle};
 }
 
 void Daemon::applyConfig()
@@ -139,6 +140,8 @@ QString Daemon::attach(int fd, const DeviceCaps &caps)
     };
     m_scroller = std::make_unique<Scroller>(*m_touchOut, *m_wheelOut, axis(ABS_MT_POSITION_X),
                                             axis(ABS_MT_POSITION_Y), options());
+    if (caps.abs[ABS_MT_SLOT])
+        m_scroller->setSlotCount(caps.absinfo[ABS_MT_SLOT].maximum + 1);
     m_notifier = std::make_unique<QSocketNotifier>(m_fd, QSocketNotifier::Read);
     connect(m_notifier.get(), &QSocketNotifier::activated, this, &Daemon::onReadable);
     publish("active", &caps);

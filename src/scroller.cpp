@@ -9,6 +9,7 @@ namespace {
 constexpr int kToolButtons[] = {BTN_TOOL_FINGER, BTN_TOOL_DOUBLETAP, BTN_TOOL_TRIPLETAP,
                                 BTN_TOOL_QUADTAP, BTN_TOOL_QUINTTAP};
 constexpr int kHiresPerNotch = 120;
+constexpr double kDefaultMmPerNotch = 5.0;   // the default Speed; touchpad-style travel is 1:1 there
 
 // Cruising: the spot where a finger lands is remembered. Staying within the dead
 // zone of it (left or right) does nothing, so small accidental movements never
@@ -50,6 +51,23 @@ void Scroller::setOptions(const ScrollOptions &o)
     m_tau = std::max(0.05, o.glideSeconds) / 3.0;
     if (!m_inertia)
         m_glide = m_vel = 0;
+
+    m_yPerMm = m_yInfo.resolution ? m_yInfo.resolution : (m_yInfo.max - m_yInfo.min) / 70.0;
+    if (m_yPerMm <= 0)
+        m_yPerMm = 1;
+    m_smooth = o.smooth;
+    m_smoothTau = std::max(0.01, o.smoothSeconds) / 3.0;
+    if (!m_smooth)
+        flushBacklog();
+    m_touchpadStyle = o.touchpadStyle;
+    if (m_synth && !synthAllowed()) {
+        endSynth();
+        updateButtons();
+        if (m_dirty) {
+            m_touch.syn();
+            m_dirty = false;
+        }
+    }
 }
 
 double Scroller::extentMm(const AxisInfo &a)
@@ -111,7 +129,8 @@ void Scroller::onAbs(int code, int value)
             auto it = m_slots.find(m_cur);
             if (it == m_slots.end())
                 return;
-            if (it->second.state == State::Captured)
+            // Touchpad-style scrolling leaves coasting to the app, which sees the fingers lift.
+            if (it->second.state == State::Captured && !m_synthUsed)
                 beginGlide();
             Slot s = std::move(it->second);
             m_slots.erase(it);
@@ -119,8 +138,22 @@ void Scroller::onAbs(int code, int value)
                 flush(m_cur, s);   // a quick tap that never left pending still reaches the desktop
             if (s.state != State::Captured)
                 sendAbs(m_cur, ABS_MT_TRACKING_ID, -1);
+            if (s.state == State::Captured && !hasCaptured()) {
+                if (m_synth)
+                    endSynth();
+                m_synthUsed = m_synthBlocked = m_synthReland = false;
+                m_synthCarry = 0;
+            }
         } else {
             m_glide = 0;   // any new touch stops a glide, like putting a hand on a spinning wheel
+            if (m_synth || m_synthReland) {
+                // A real finger is joining; the synthetic ones must not turn it into a
+                // three-finger gesture. The rest of this strip touch uses the wheel.
+                if (m_synth)
+                    endSynth();
+                m_synthBlocked = true;
+                m_synthReland = false;
+            }
             Slot s;
             s.buffer.emplace_back(ABS_MT_TRACKING_ID, value);
             m_slots[m_cur] = std::move(s);
@@ -140,6 +173,13 @@ void Scroller::onAbs(int code, int value)
     } else if (code == ABS_MT_POSITION_Y) {
         s.y = value;
         s.hasY = true;
+    } else {
+        // Pressure, contact size and the like: synthetic fingers copy them, so the
+        // compositor's touch detection treats them like the real finger.
+        s.extras[code] = value;
+        if (s.state == State::Captured && m_synth)
+            for (int i = 0; i < 2; ++i)
+                sendAbs(m_slotCount - 1 - i, code, value);
     }
     if (s.state == State::Pending)
         s.buffer.emplace_back(code, value);
@@ -173,21 +213,55 @@ void Scroller::endFrame()
         }
     }
 
+    // Touchpad-style scrolling: the strip finger's travel moves two synthetic
+    // fingers up or down on the touch output, inside the same frame.
+    const bool anyForwarded = std::any_of(m_slots.begin(), m_slots.end(), [](const auto &t) {
+        return t.second.state == State::Forwarded;
+    });
+    if (synthAllowed() && !m_synth && anyForwarded) {
+        // An ordinary finger landed in the same frame; two more would make a
+        // three-finger gesture. This strip touch uses the wheel instead.
+        m_synthBlocked = true;
+        m_synthReland = false;
+    }
+    if (synthAllowed()) {
+        if (!m_synth) {
+            // First frame of the strip touch, or landing again after reaching the
+            // pad's edge. The landing frame itself doesn't move.
+            m_synthCarry += m_dx / m_xPerMm;
+            m_dx = 0;
+            m_synthReland = false;
+            startSynth();
+        } else {
+            const double mm = m_dx / m_xPerMm + m_synthCarry;
+            m_dx = 0;
+            m_synthCarry = 0;
+            if (mm != 0)
+                moveSynth(mm);
+        }
+    } else if (m_synth) {
+        endSynth();   // cruise was switched on mid-touch, say
+    }
+
+    updateButtons();
+    if (m_dirty) {
+        m_touch.syn();
+        m_dirty = false;
+    }
+    scroll();
+}
+
+void Scroller::updateButtons()
+{
     const int n = int(std::count_if(m_slots.begin(), m_slots.end(), [](const auto &t) {
         return t.second.state == State::Forwarded;
-    }));
+    })) + (m_synth ? 2 : 0);
     if (n != m_forwarded) {
         m_forwarded = n;
         send(EV_KEY, BTN_TOUCH, n ? 1 : 0);
         for (int i = 0; i < 5; ++i)
             send(EV_KEY, kToolButtons[i], std::min(n, 5) == i + 1 ? 1 : 0);
     }
-
-    if (m_dirty) {
-        m_touch.syn();
-        m_dirty = false;
-    }
-    scroll();
 }
 
 void Scroller::scroll()
@@ -200,7 +274,87 @@ void Scroller::scroll()
     m_dx = 0;
     const double hires = mm * m_hiresPerMm * m_sign;
     m_tickHires += hires;
-    addHires(hires);
+    output(hires);
+}
+
+void Scroller::output(double hires)
+{
+    if (m_smooth)
+        m_backlog += hires;
+    else
+        addHires(hires);
+}
+
+void Scroller::flushBacklog()
+{
+    if (m_backlog != 0)
+        addHires(m_backlog);
+    m_backlog = 0;
+}
+
+const Scroller::Slot *Scroller::capturedSlot() const
+{
+    for (const auto &[slot, s] : m_slots)
+        if (s.state == State::Captured)
+            return &s;
+    return nullptr;
+}
+
+bool Scroller::synthAllowed() const
+{
+    return m_touchpadStyle && !m_cruise && m_slotCount >= 2 && !m_synthBlocked && hasCaptured();
+}
+
+void Scroller::startSynth()
+{
+    // Two fingers side by side in the middle of the pad, in the two highest
+    // slots, which real touches reach last (and any new real touch ends this).
+    const Slot *captured = capturedSlot();
+    const double cx = (m_xInfo.min + m_xInfo.max) / 2.0;
+    const double half = std::min(12.0 * m_xPerMm, (m_xInfo.max - m_xInfo.min) / 4.0);
+    m_synthY = (m_yInfo.min + m_yInfo.max) / 2.0;
+    for (int i = 0; i < 2; ++i) {
+        const int slot = m_slotCount - 1 - i;
+        sendAbs(slot, ABS_MT_TRACKING_ID, m_synthId);
+        m_synthId = m_synthId >= 0xFFFF ? 0x7000 : m_synthId + 1;
+        sendAbs(slot, ABS_MT_POSITION_X, int(std::lround(i ? cx + half : cx - half)));
+        sendAbs(slot, ABS_MT_POSITION_Y, int(std::lround(m_synthY)));
+        if (captured)
+            for (const auto &[code, value] : captured->extras)
+                sendAbs(slot, code, value);
+    }
+    m_synth = true;
+    m_synthUsed = true;
+}
+
+void Scroller::moveSynth(double mm)
+{
+    // Sliding right scrolls up, which for two fingers means moving them up the
+    // pad. The Speed setting scales the travel; it is 1:1 at the default.
+    const double gain = kDefaultMmPerNotch * m_notchesPerMm;
+    const double range = m_yInfo.max - m_yInfo.min;
+    const double lo = m_yInfo.min + 0.15 * range;
+    const double hi = m_yInfo.max - 0.15 * range;
+    const double y = m_synthY - mm * gain * m_sign * m_yPerMm;
+    if (y < lo || y > hi) {
+        // Out of room: lift, land again in the middle next frame and carry the
+        // movement over. A single jump can't be bigger than half the room.
+        const double maxMm = 0.45 * (hi - lo) / (gain * m_yPerMm);
+        m_synthCarry += std::clamp(mm, -maxMm, maxMm);
+        endSynth();
+        m_synthReland = true;
+        return;
+    }
+    m_synthY = y;
+    for (int i = 0; i < 2; ++i)
+        sendAbs(m_slotCount - 1 - i, ABS_MT_POSITION_Y, int(std::lround(y)));
+}
+
+void Scroller::endSynth()
+{
+    for (int i = 0; i < 2; ++i)
+        sendAbs(m_slotCount - 1 - i, ABS_MT_TRACKING_ID, -1);
+    m_synth = false;
 }
 
 double Scroller::cruiseRate() const
@@ -232,7 +386,7 @@ bool Scroller::hasCaptured() const
 
 bool Scroller::needsTick() const
 {
-    return cruising() || m_glide != 0 || (m_inertia && !m_cruise && hasCaptured());
+    return cruising() || m_glide != 0 || m_backlog != 0 || (m_inertia && !m_cruise && hasCaptured());
 }
 
 void Scroller::beginGlide()
@@ -252,7 +406,7 @@ void Scroller::tick(double seconds)
         return;
 
     if (m_glide != 0) {
-        addHires(m_glide * seconds);
+        output(m_glide * seconds);
         m_glide *= std::exp(-seconds / m_tau);
         if (std::abs(m_glide) < kMinGlide)
             m_glide = 0;
@@ -267,13 +421,25 @@ void Scroller::tick(double seconds)
 
     const double rate = cruiseRate();
     if (rate != 0)
-        addHires(rate * kHiresPerNotch * seconds);
+        output(rate * kHiresPerNotch * seconds);
+
+    // Smooth scrolling: send a share of what is waiting, so movement eases out
+    // over the smoothing time instead of arriving all at once.
+    if (m_backlog != 0) {
+        double take = m_backlog * (1 - std::exp(-seconds / m_smoothTau));
+        if (std::abs(m_backlog - take) < 1.0)
+            take = m_backlog;
+        m_backlog -= take;
+        addHires(take);
+    }
 }
 
 void Scroller::addHires(double hires)
 {
     m_hiresAcc += hires;
-    const int whole = int(m_hiresAcc);   // truncates toward zero; the remainder carries over
+    // Truncates toward zero and the remainder carries over. The nudge stops
+    // rounding error from the smoothing turning 240 into 239.999... and a lost notch.
+    const int whole = int(m_hiresAcc + (m_hiresAcc < 0 ? -1e-6 : 1e-6));
     if (!whole)
         return;
     m_hiresAcc -= whole;
@@ -293,6 +459,11 @@ void Scroller::reset()
     for (const auto &[slot, s] : m_slots)
         if (s.state == State::Forwarded)
             sendAbs(slot, ABS_MT_TRACKING_ID, -1);
+    if (m_synth)
+        endSynth();
+    m_synthUsed = m_synthBlocked = m_synthReland = false;
+    m_synthCarry = 0;
+    m_backlog = 0;
     m_slots.clear();
     m_glide = m_vel = 0;
     m_forwarded = 0;

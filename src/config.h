@@ -15,6 +15,9 @@ struct Config {
     double cruiseMax = 60.0;    // cruise: top speed, in notches per second
     bool inertia = true;        // keep gliding after the finger lifts
     double glideSeconds = 1.0;  // roughly how long the glide lasts
+    bool smooth = true;         // spread scrolling out over a moment instead of sending it at once
+    double smoothSeconds = 0.12;
+    bool touchpadStyle = false; // Linux: scroll as a two-finger swipe on the virtual touchpad
 
     static constexpr double kMinStripMm = 4, kMaxStripMm = 30;
     static constexpr double kMinMmPerNotch = 2, kMaxMmPerNotch = 12;
@@ -22,6 +25,7 @@ struct Config {
     static constexpr double kMinCruiseStart = 0.5, kMaxCruiseStart = 10;
     static constexpr double kMinCruiseMax = 10, kMaxCruiseMax = 120;
     static constexpr double kMinGlideSeconds = 0.2, kMaxGlideSeconds = 3;
+    static constexpr double kMinSmoothSeconds = 0.04, kMaxSmoothSeconds = 0.4;
 
     static QString defaultPath();
     static Config load(const QString &path);

@@ -65,5 +65,14 @@
   "Ignore small movements": "Kleine Bewegungen ignorieren",
   "Touchpad: %1": "Touchpad: %1",
   "Turn hold to keep scrolling on or off": "„Halten zum Weiterscrollen“ ein- oder ausschalten",
-  "Turn smooth stop on or off": "Sanftes Auslaufen ein- oder ausschalten"
+  "Turn smooth stop on or off": "Sanftes Auslaufen ein- oder ausschalten",
+  "Smooth scrolling": "Weiches Scrollen",
+  "Pages glide along instead of moving in small jumps.": "Seiten gleiten, statt sich in kleinen Sprüngen zu bewegen.",
+  "Touchpad-style scrolling": "Scrollen wie mit dem Touchpad",
+  "Apps scroll as if you used two fingers: pixel by pixel, with their own coasting. If it goes the wrong way, turn on Flip direction.": "Apps scrollen, als würdest du zwei Finger benutzen: pixelgenau und mit eigenem Nachlaufen. Wenn es in die falsche Richtung geht, schalte Richtung umdrehen ein.",
+  "Smoothness": "Weichheit",
+  "How long each movement is eased out over.": "Wie lange jede Bewegung sanft ausläuft.",
+  "Snappy": "Direkt",
+  "Silky": "Seidig",
+  "Turn smooth scrolling on or off": "Weiches Scrollen ein- oder ausschalten"
 }

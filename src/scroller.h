@@ -26,6 +26,16 @@ struct ScrollOptions {
     // `glideSeconds`. Applies to both normal scrolling and cruise.
     bool inertia = true;
     double glideSeconds = 1.0;
+    // Smooth scrolling: instead of sending each bit of movement the moment it
+    // arrives, spread it over roughly `smoothSeconds` on the tick clock, so the
+    // page glides rather than moving in small bursts. Off here so the routing
+    // tests stay exact; the user setting (Config::smooth) is on by default.
+    bool smooth = false;
+    double smoothSeconds = 0.12;
+    // Touchpad-style scrolling (Linux): drive a two-finger scroll on the virtual
+    // touchpad instead of sending wheel events, so apps scroll pixel-precisely
+    // and coast on their own. Needs setSlotCount(); falls back to the wheel otherwise.
+    bool touchpadStyle = false;
 };
 
 // Routes touchpad events. Every touch is re-emitted through `touchOut`, except
@@ -38,6 +48,9 @@ public:
              ScrollOptions options);
 
     void setOptions(const ScrollOptions &options);
+    // How many multitouch slots the touch output has (ABS_MT_SLOT maximum + 1).
+    // Touchpad-style scrolling borrows the two highest for its synthetic fingers.
+    void setSlotCount(int slots) { m_slotCount = slots; }
     void handle(int type, int code, int value);
 
     // Advances cruising by `seconds`. The caller supplies the clock, so tests
@@ -65,6 +78,7 @@ private:
         bool hasX = false, hasY = false;
         int x = 0, y = 0;
         int anchorX = 0;   // where a captured touch landed; cruise speed grows with distance from it
+        std::map<int, int> extras;   // pressure, contact size and so on, copied onto synthetic fingers
     };
 
     void send(int type, int code, int value);
@@ -72,10 +86,18 @@ private:
     void onAbs(int code, int value);
     void flush(int slot, Slot &s);
     void endFrame();
+    void updateButtons();
     void scroll();
     void addHires(double hires);
     void reset();
     void beginGlide();
+    void output(double hires);   // through the smoothing backlog when smooth scrolling is on
+    void flushBacklog();
+    bool synthAllowed() const;
+    void startSynth();
+    void moveSynth(double mm);
+    void endSynth();
+    const Slot *capturedSlot() const;
 
     EventSink &m_touch;
     EventSink &m_scroll;
@@ -94,6 +116,21 @@ private:
     double m_glide = 0;           // current glide speed, hires units per second
     double m_tickHires = 0;       // scrolled directly since the last tick
     int m_sign = 1;
+    bool m_smooth = false;
+    double m_smoothTau = 0.04;    // smoothing time constant, seconds
+    double m_backlog = 0;         // hires units waiting to be sent while smoothing
+
+    // Touchpad-style scrolling: two synthetic fingers on the touch output.
+    bool m_touchpadStyle = false;
+    int m_slotCount = 0;
+    double m_yPerMm = 1;
+    bool m_synth = false;         // the synthetic fingers are down
+    bool m_synthUsed = false;     // this strip touch scrolled touchpad-style (so no glide of ours)
+    bool m_synthBlocked = false;  // another finger landed; the rest of this touch uses the wheel
+    bool m_synthReland = false;   // the fingers reached the pad's edge and must land again
+    double m_synthY = 0;
+    double m_synthCarry = 0;      // movement held over while the fingers re-land, in mm
+    int m_synthId = 0x7000;
 
     std::map<int, Slot> m_slots;
     int m_cur = 0;

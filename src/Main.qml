@@ -481,6 +481,21 @@ ApplicationWindow {
                 }
                 Divider {}
                 SwitchRow {
+                    label: qsTr("Smooth scrolling")
+                    hint: qsTr("Pages glide along instead of moving in small jumps.")
+                    on: backend.smooth
+                    onToggled: v => backend.smooth = v
+                }
+                Divider { visible: !win.windows }
+                SwitchRow {
+                    visible: !win.windows
+                    label: qsTr("Touchpad-style scrolling")
+                    hint: qsTr("Apps scroll as if you used two fingers: pixel by pixel, with their own coasting. If it goes the wrong way, turn on Flip direction.")
+                    on: backend.touchpadStyle
+                    onToggled: v => backend.touchpadStyle = v
+                }
+                Divider {}
+                SwitchRow {
                     label: qsTr("Hold to keep scrolling")
                     hint: qsTr("Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. Lift to stop.")
                     on: backend.cruise
@@ -536,6 +551,16 @@ ApplicationWindow {
                         enabled: backend.inertia
                         opacity: backend.inertia ? 1 : 0.4
                         onMoved: v => backend.glideSeconds = v
+                    }
+                    SliderRow {
+                        label: qsTr("Smoothness")
+                        hint: qsTr("How long each movement is eased out over.")
+                        lowText: qsTr("Snappy"); highText: qsTr("Silky")
+                        current: backend.smoothSeconds
+                        from: 0.04; to: 0.4; stepSize: 0.02
+                        enabled: backend.smooth
+                        opacity: backend.smooth ? 1 : 0.4
+                        onMoved: v => backend.smoothSeconds = v
                     }
                     SliderRow {
                         label: qsTr("Ignore small movements")
@@ -616,6 +641,7 @@ ApplicationWindow {
                     { key: "R", what: qsTr("Reverse direction") },
                     { key: "C", what: qsTr("Turn hold to keep scrolling on or off") },
                     { key: "G", what: qsTr("Turn smooth stop on or off") },
+                    { key: "S", what: qsTr("Turn smooth scrolling on or off") },
                     { key: "Up / Down", what: qsTr("Taller or shorter strip") },
                     { key: "Left / Right", what: qsTr("Slower or faster scrolling") },
                     { key: "?", what: qsTr("Show this help") },
@@ -636,6 +662,7 @@ ApplicationWindow {
     Shortcut { sequences: ["Space"]; context: Qt.ApplicationShortcut; onActivated: backend.enabled = !backend.enabled }
     Shortcut { sequences: ["C"]; context: Qt.ApplicationShortcut; onActivated: backend.cruise = !backend.cruise }
     Shortcut { sequences: ["G"]; context: Qt.ApplicationShortcut; onActivated: backend.inertia = !backend.inertia }
+    Shortcut { sequences: ["S"]; context: Qt.ApplicationShortcut; onActivated: backend.smooth = !backend.smooth }
     Shortcut { sequences: ["R"]; context: Qt.ApplicationShortcut; onActivated: backend.invert = !backend.invert }
     Shortcut { sequences: ["Up"]; context: Qt.ApplicationShortcut; onActivated: backend.stripMm = win.nudge(backend.stripMm, 1, 4, 30) }
     Shortcut { sequences: ["Down"]; context: Qt.ApplicationShortcut; onActivated: backend.stripMm = win.nudge(backend.stripMm, -1, 4, 30) }

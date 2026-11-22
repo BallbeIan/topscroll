@@ -43,7 +43,7 @@ const char *kStartHint = "topscroll: the service isn't running; start it with "
                          "`systemctl --user enable --now topscroll`\n";
 #endif
 
-const char *kVersion = "0.1.0";
+const char *kVersion = "2.0.0";
 
 int usage(FILE *out, int code)
 {

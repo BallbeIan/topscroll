@@ -22,6 +22,7 @@ void Config::clamp()
     cruiseStart = std::clamp(cruiseStart, kMinCruiseStart, kMaxCruiseStart);
     cruiseMax = std::clamp(cruiseMax, kMinCruiseMax, kMaxCruiseMax);
     glideSeconds = std::clamp(glideSeconds, kMinGlideSeconds, kMaxGlideSeconds);
+    smoothSeconds = std::clamp(smoothSeconds, kMinSmoothSeconds, kMaxSmoothSeconds);
 }
 
 Config Config::load(const QString &path)
@@ -39,6 +40,9 @@ Config Config::load(const QString &path)
         c.cruiseMax = s.value("cruise_max", c.cruiseMax).toDouble();
         c.inertia = s.value("inertia", c.inertia).toBool();
         c.glideSeconds = s.value("glide_seconds", c.glideSeconds).toDouble();
+        c.smooth = s.value("smooth", c.smooth).toBool();
+        c.smoothSeconds = s.value("smooth_seconds", c.smoothSeconds).toDouble();
+        c.touchpadStyle = s.value("touchpad_style", c.touchpadStyle).toBool();
     }
     c.clamp();
     return c;
@@ -63,6 +67,10 @@ bool Config::save(const QString &path) const
                              .arg(cruiseMax, 0, 'f', 0)
                              .arg(inertia ? "true" : "false")
                              .arg(glideSeconds, 0, 'f', 1);
-    f.write(text.toUtf8());
+    const QString more = QStringLiteral("smooth=%1\nsmooth_seconds=%2\ntouchpad_style=%3\n")
+                             .arg(smooth ? "true" : "false")
+                             .arg(smoothSeconds, 0, 'f', 2)
+                             .arg(touchpadStyle ? "true" : "false");
+    f.write((text + more).toUtf8());
     return f.commit();
 }

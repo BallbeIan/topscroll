@@ -65,5 +65,14 @@
   "Ignore small movements": "Ignorer les petits mouvements",
   "Touchpad: %1": "Touchpad : %1",
   "Turn hold to keep scrolling on or off": "Activer ou désactiver « maintenir pour continuer à défiler »",
-  "Turn smooth stop on or off": "Activer ou désactiver l'arrêt progressif"
+  "Turn smooth stop on or off": "Activer ou désactiver l'arrêt progressif",
+  "Smooth scrolling": "Défilement fluide",
+  "Pages glide along instead of moving in small jumps.": "Les pages glissent au lieu d'avancer par petits sauts.",
+  "Touchpad-style scrolling": "Défilement comme au pavé tactile",
+  "Apps scroll as if you used two fingers: pixel by pixel, with their own coasting. If it goes the wrong way, turn on Flip direction.": "Les apps défilent comme avec deux doigts : au pixel près, avec leur propre inertie. Si le sens est inversé, active Inverser le sens.",
+  "Smoothness": "Fluidité",
+  "How long each movement is eased out over.": "Durée sur laquelle chaque mouvement est adouci.",
+  "Snappy": "Vif",
+  "Silky": "Soyeux",
+  "Turn smooth scrolling on or off": "Activer ou désactiver le défilement fluide"
 }

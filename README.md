@@ -27,6 +27,7 @@ That's it. No second finger, no keyboard shortcut. Moving the cursor, tapping, c
 
 ## Nice touches
 
+- **Smooth scrolling.** New in 2.0: pages glide along instead of moving in little jumps. On Linux you can go further with **touchpad-style scrolling**, where apps scroll pixel by pixel exactly as if you'd used two fingers.
 - **Smooth stop.** Lift your finger mid-slide and the scrolling coasts on and eases out, like flicking a wheel.
 - **Hold to keep scrolling.** Optional. Keep your finger down and it keeps going, faster the further you slide. Small accidental movements are ignored.
 - **Make it yours.** Change the speed, the size of the strip and the direction, and watch the preview react. Every change applies instantly.
@@ -90,9 +91,11 @@ Everything is in the window. The sliders and switches do what they say:
 | **Speed** | How far you slide for each scroll step, from slow to fast. |
 | **Scroll area** | How tall the scrolling strip along the top edge is. |
 | **Smooth stop** | Keep coasting after you lift your finger, then ease to a stop. |
+| **Smooth scrolling** | Spread each movement out over a moment so pages glide instead of jumping. On by default. |
+| **Touchpad-style scrolling** (Linux) | Apps scroll as if you used two fingers on the touchpad: pixel-precise, with their own coasting. Off by default. If it goes the wrong way, turn on **Flip direction**. |
 | **Hold to keep scrolling** | Keep your finger down and it keeps scrolling. The further you slide from where you started, the faster it goes. |
 | **Flip direction** | Slide right to scroll down instead of up. |
-| **Fine-tune** | Opens the finer controls: how long the smooth stop lasts, how much movement is ignored, and the start and top speed for holding to keep scrolling. **Reset to defaults** is in here too. |
+| **Fine-tune** | Opens the finer controls: how smooth scrolling is, how long the smooth stop lasts, how much movement is ignored, and the start and top speed for holding to keep scrolling. **Reset to defaults** is in here too. |
 
 Press `?` in the window for keyboard shortcuts.
 

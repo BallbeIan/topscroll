@@ -54,6 +54,9 @@ void Backend::setCruiseStart(double v) { Config c = m_config; c.cruiseStart = v;
 void Backend::setCruiseMax(double v) { Config c = m_config; c.cruiseMax = v; change(c); }
 void Backend::setInertia(bool v) { Config c = m_config; c.inertia = v; change(c); }
 void Backend::setGlideSeconds(double v) { Config c = m_config; c.glideSeconds = v; change(c); }
+void Backend::setSmooth(bool v) { Config c = m_config; c.smooth = v; change(c); }
+void Backend::setSmoothSeconds(double v) { Config c = m_config; c.smoothSeconds = v; change(c); }
+void Backend::setTouchpadStyle(bool v) { Config c = m_config; c.touchpadStyle = v; change(c); }
 
 void Backend::resetDefaults()
 {

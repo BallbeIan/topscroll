@@ -29,7 +29,7 @@ win32 {
     HEADERS += src/windaemon.h src/wintouchpad.h
     LIBS += -luser32 -lhid
     DEFINES += NOMINMAX WIN32_LEAN_AND_MEAN
-    VERSION = 0.1.0
+    VERSION = 2.0.0
     QMAKE_TARGET_DESCRIPTION = "topscroll - scroll with one finger"
     QMAKE_TARGET_PRODUCT = topscroll
     RC_ICONS = windows/topscroll.ico

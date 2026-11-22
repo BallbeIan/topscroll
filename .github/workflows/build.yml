@@ -1,4 +1,4 @@
-name: Windows
+name: Build
 
 on:
   push:
@@ -11,7 +11,34 @@ permissions:
   contents: write   # attach the installer and zip to a release on tags
 
 jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev libxkbcommon-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          cache: true
+
+      - name: Build
+        run: |
+          mkdir -p build && cd build
+          qmake ../topscroll.pro
+          make -j"$(nproc)"
+
+      - name: Test
+        run: |
+          mkdir -p build/tests && cd build/tests
+          qmake ../../tests/topscroll_tests.pro
+          make -j"$(nproc)"
+          QT_QPA_PLATFORM=offscreen ./topscroll_tests
+
   build:
+    needs: linux
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +54,7 @@ jobs:
       - name: Version
         shell: pwsh
         run: |
-          $v = if ($env:GITHUB_REF -like 'refs/tags/v*') { $env:GITHUB_REF_NAME.Substring(1) } else { '0.1.0' }
+          $v = if ($env:GITHUB_REF -like 'refs/tags/v*') { $env:GITHUB_REF_NAME.Substring(1) } else { '2.0.0' }
           "VERSION=$v" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build
