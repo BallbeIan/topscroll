@@ -41,7 +41,6 @@ jobs:
           QT_QPA_PLATFORM=offscreen ./topscroll_tests 2>&1 | tee test.log || { grep -E 'FAIL|Loc:' test.log | head -30 | sed 's/^/::error::/'; exit 1; }
 
   build:
-    needs: linux
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
