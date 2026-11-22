@@ -25,17 +25,20 @@ jobs:
           cache: true
 
       - name: Build
+        shell: bash -o pipefail -e {0}
         run: |
           mkdir -p build && cd build
           qmake ../topscroll.pro
-          make -j"$(nproc)"
+          # Compiler errors become annotations, readable on the run page without logs.
+          make -j"$(nproc)" 2>&1 | tee make.log || { grep -E 'error|undefined reference' make.log | head -30 | sed 's/^/::error::/'; exit 1; }
 
       - name: Test
+        shell: bash -o pipefail -e {0}
         run: |
           mkdir -p build/tests && cd build/tests
           qmake ../../tests/topscroll_tests.pro
-          make -j"$(nproc)"
-          QT_QPA_PLATFORM=offscreen ./topscroll_tests
+          make -j"$(nproc)" 2>&1 | tee make.log || { grep -E 'error|undefined reference' make.log | head -30 | sed 's/^/::error::/'; exit 1; }
+          QT_QPA_PLATFORM=offscreen ./topscroll_tests 2>&1 | tee test.log || { grep -E 'FAIL|Loc:' test.log | head -30 | sed 's/^/::error::/'; exit 1; }
 
   build:
     needs: linux
