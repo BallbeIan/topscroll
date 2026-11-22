@@ -50,6 +50,8 @@ public:
     bool needsTick() const;
     // Cruise speed in wheel notches per second, signed like the wheel (positive is up).
     double cruiseRate() const;
+    // True while a finger that started in the strip is down (and so is scrolling).
+    bool hasCaptured() const;
 
     // Physical size of an axis in mm, or 0 when the device doesn't report it.
     static double extentMm(const AxisInfo &axis);
@@ -74,7 +76,6 @@ private:
     void addHires(double hires);
     void reset();
     void beginGlide();
-    bool hasCaptured() const;
 
     EventSink &m_touch;
     EventSink &m_scroll;

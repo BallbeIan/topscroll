@@ -17,6 +17,7 @@ SOURCES += \
 HEADERS += \
     ../src/config.h \
     ../src/eventsink.h \
+    ../src/inputcodes.h \
     ../src/scroller.h \
     ../src/status.h \
     ../src/theme.h \

@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QProcess>
 #include <QRegularExpression>
+#include <QSettings>
 #include <QStandardPaths>
 
 QString Theme::defaultColorsFile()
@@ -60,8 +61,24 @@ void Theme::reload()
 {
     QString accent = QString::fromLatin1(kFallbackAccent);
     QFile f(m_file);
-    if (f.open(QIODevice::ReadOnly))
+    if (f.open(QIODevice::ReadOnly)) {
         accent = parseAccent(QString::fromUtf8(f.readAll()));
+    }
+#ifdef Q_OS_WIN
+    else if (m_file == defaultColorsFile()) {
+        // No Omarchy here: use the Windows accent colour (stored as 0xAABBGGRR).
+        const QVariant v = QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\DWM",
+                                     QSettings::NativeFormat).value("AccentColor");
+        if (v.isValid()) {
+            const quint32 abgr = v.toUInt();
+            accent = QStringLiteral("#%1%2%3")
+                         .arg(abgr & 0xFF, 2, 16, QLatin1Char('0'))
+                         .arg((abgr >> 8) & 0xFF, 2, 16, QLatin1Char('0'))
+                         .arg((abgr >> 16) & 0xFF, 2, 16, QLatin1Char('0'))
+                         .toUpper();
+        }
+    }
+#endif
     if (accent != m_accent) {
         m_accent = accent;
         emit accentChanged();

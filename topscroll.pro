@@ -8,8 +8,6 @@ SOURCES += \
     src/main.cpp \
     src/backend.cpp \
     src/config.cpp \
-    src/daemon.cpp \
-    src/evdev.cpp \
     src/scroller.cpp \
     src/status.cpp \
     src/theme.cpp \
@@ -18,12 +16,27 @@ SOURCES += \
 HEADERS += \
     src/backend.h \
     src/config.h \
-    src/daemon.h \
-    src/evdev.h \
     src/eventsink.h \
+    src/inputcodes.h \
     src/scroller.h \
     src/status.h \
     src/theme.h \
     src/translator.h
+
+win32 {
+    # Raw Input + a low-level mouse hook + SendInput; see src/windaemon.h.
+    SOURCES += src/windaemon.cpp src/wintouchpad.cpp
+    HEADERS += src/windaemon.h src/wintouchpad.h
+    LIBS += -luser32 -lhid
+    DEFINES += NOMINMAX WIN32_LEAN_AND_MEAN
+    VERSION = 0.1.0
+    QMAKE_TARGET_DESCRIPTION = "topscroll - scroll with one finger"
+    QMAKE_TARGET_PRODUCT = topscroll
+    RC_ICONS = windows/topscroll.ico
+} else {
+    # evdev + uinput; see src/daemon.h.
+    SOURCES += src/daemon.cpp src/evdev.cpp
+    HEADERS += src/daemon.h src/evdev.h
+}
 
 RESOURCES += src/resources.qrc

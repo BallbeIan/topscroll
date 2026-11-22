@@ -1,6 +1,6 @@
 #include "scroller.h"
 
-#include <linux/input.h>
+#include "inputcodes.h"
 
 #include <algorithm>
 #include <cmath>

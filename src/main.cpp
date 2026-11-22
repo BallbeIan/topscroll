@@ -11,12 +11,37 @@
 
 #include "backend.h"
 #include "config.h"
-#include "daemon.h"
 #include "status.h"
 #include "theme.h"
 #include "translator.h"
 
+#ifdef Q_OS_WIN
+#include "windaemon.h"
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include "daemon.h"
+#endif
+
 namespace {
+
+#ifdef Q_OS_WIN
+// The executable is a GUI program, so it has no console of its own. When run
+// from a terminal, write to that terminal instead.
+void attachConsole()
+{
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        std::freopen("CONOUT$", "w", stdout);
+        std::freopen("CONOUT$", "w", stderr);
+    }
+}
+const char *kStartHint = "topscroll: the service isn't running; open topscroll and press Start\n";
+#else
+const char *kStartHint = "topscroll: the service isn't running; start it with "
+                         "`systemctl --user enable --now topscroll`\n";
+#endif
 
 const char *kVersion = "0.1.0";
 
@@ -37,6 +62,13 @@ int usage(FILE *out, int code)
 
 int runDaemon(int argc, char **argv)
 {
+#ifdef Q_OS_WIN
+    // One daemon per user: starting a second one (from the Run key and the
+    // Start button, say) quietly does nothing.
+    CreateMutexW(nullptr, TRUE, L"Local\\topscroll-daemon");
+    if (GetLastError() == ERROR_ALREADY_EXISTS)
+        return 0;
+#endif
     QCoreApplication app(argc, argv);
     Daemon daemon(Config::defaultPath(), Status::defaultPath());
     daemon.start();
@@ -52,8 +84,7 @@ int runStatus(int argc, char **argv, bool json)
             std::puts("{\"state\":\"stopped\"}");
         else
             std::fputs("stopped\n", stdout);
-        std::fputs("topscroll: the service isn't running; start it with "
-                   "`systemctl --user enable --now topscroll`\n", stderr);
+        std::fputs(kStartHint, stderr);
         return 1;
     }
     if (json)
@@ -126,6 +157,9 @@ int main(int argc, char **argv)
         return runGui(argc, argv);
     if (command == "daemon")
         return runDaemon(argc, argv);
+#ifdef Q_OS_WIN
+    attachConsole();
+#endif
     if (command == "status")
         return runStatus(argc, argv, argc > 2 && QString::fromLocal8Bit(argv[2]) == "--json");
     if (command == "--version" || command == "-v") {

@@ -13,6 +13,15 @@ libinput has no top-edge scrolling, so the daemon grabs the touchpad through evd
  topscroll.conf ┘   settings window ──► topscroll.conf       daemon ──► status.json ──► settings window
 ```
 
+### On Windows
+
+Windows can't grab a touchpad from user space, so `src/windaemon.cpp` replaces the evdev/uinput half while the `Scroller` stays the same:
+
+- `src/wintouchpad.cpp` reads the Precision Touchpad's HID reports through Raw Input (`RIDEV_INPUTSINK`, so it works whatever window has focus) and parses the contacts from the device's own report descriptor. The daemon turns each frame into evdev multitouch events for the `Scroller`.
+- Windows keeps moving the cursor from the real touchpad. While a touch that began in the strip is down, a `WH_MOUSE_LL` hook swallows the cursor movement, plus clicks for a moment after the finger lifts so a tap on the strip doesn't click.
+- The "virtual touchpad" is a no-op sink, and the wheel sink sends `MOUSEEVENTF_WHEEL` through `SendInput` (120 per notch, the same unit as `REL_WHEEL_HI_RES`).
+- The daemon is `topscroll.exe daemon`, started at login from `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. A named mutex keeps it to one per user. Settings live in `%LOCALAPPDATA%\topscroll\topscroll.conf` and status in `%TEMP%\topscroll\status.json`.
+
 The settings window only edits `topscroll.conf`, and the daemon watches that file. The daemon reports what it is doing in `$XDG_RUNTIME_DIR/topscroll/status.json`, which the window and `topscroll status` read.
 
 | Path | What it does |
@@ -58,6 +67,18 @@ bin/build          # qmake6 + make into build/topscroll
 bin/test           # Qt Test suite, offscreen, never touches real input devices
 bin/screenshot docs/images/settings.png   # regenerate the README screenshot from the real app (QT_SCALE_FACTOR=2 for sharper)
 ```
+
+### Windows
+
+You need Qt 6 (MSVC 2022 64-bit, with Qt Declarative) and Visual Studio 2022's C++ tools. From a *Developer PowerShell for VS 2022*:
+
+```powershell
+mkdir build-win; cd build-win
+qmake ..\topscroll.pro; nmake
+windeployqt --release --qmldir ..\src release\topscroll.exe
+```
+
+`.github/workflows/windows.yml` does the same on every push, runs the tests, and builds the portable zip and the Inno Setup installer (`windows/topscroll.iss`). Pushing a `v*` tag attaches both to a GitHub release. `windows/topscroll.ico` is a raster version of `pkgbuild/topscroll.svg`.
 
 When trying `build/topscroll daemon` by hand, point `XDG_CONFIG_HOME` and `XDG_RUNTIME_DIR` at a throwaway directory so it does not touch your real settings.
 

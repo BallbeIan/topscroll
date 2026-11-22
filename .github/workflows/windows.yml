@@ -1,0 +1,89 @@
+name: Windows
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # attach the installer and zip to a release on tags
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          arch: win64_msvc2022_64
+          cache: true
+
+      - name: Version
+        shell: pwsh
+        run: |
+          $v = if ($env:GITHUB_REF -like 'refs/tags/v*') { $env:GITHUB_REF_NAME.Substring(1) } else { '0.1.0' }
+          "VERSION=$v" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build-win | Out-Null
+          Set-Location build-win
+          qmake ..\topscroll.pro
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          nmake
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Test
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build-tests | Out-Null
+          Set-Location build-tests
+          qmake ..\tests\topscroll_tests.pro
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          nmake
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $exe = Get-ChildItem -Recurse -Filter topscroll_tests.exe | Select-Object -First 1
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          & $exe.FullName
+          exit $LASTEXITCODE
+
+      - name: Bundle
+        shell: pwsh
+        run: |
+          $dist = "dist\topscroll"
+          New-Item -ItemType Directory -Force $dist | Out-Null
+          $exe = Get-ChildItem build-win -Recurse -Filter topscroll.exe | Select-Object -First 1
+          Copy-Item $exe.FullName $dist
+          windeployqt --release --qmldir src --no-translations --no-system-d3d-compiler --no-opengl-sw "$dist\topscroll.exe"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Copy-Item LICENSE "$dist\LICENSE.txt"
+          Compress-Archive -Path "$dist\*" -DestinationPath "dist\topscroll-$env:VERSION-windows-x64.zip"
+
+      - name: Installer
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$env:VERSION" "/DSourceDir=$PWD\dist\topscroll" windows\topscroll.iss
+          exit $LASTEXITCODE
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: topscroll-windows
+          path: |
+            dist/*.zip
+            dist/*-setup.exe
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*-setup.exe

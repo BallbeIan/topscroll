@@ -1,5 +1,15 @@
 #include "backend.h"
 
+#ifdef Q_OS_WIN
+#include <QCoreApplication>
+#include <QDir>
+#include <QSettings>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 Backend::Backend(const QString &configPath, const QString &statusPath, QObject *parent)
     : QObject(parent), m_configPath(configPath), m_statusPath(statusPath),
       m_config(Config::load(configPath))
@@ -66,6 +76,40 @@ void Backend::refreshStatus()
     emit statusChanged();
 }
 
+#ifdef Q_OS_WIN
+
+// Windows has no user services; the daemon is the same executable started with
+// `daemon`, launched at login from the per-user Run key.
+static const char *kRunKey = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+
+void Backend::startService()
+{
+    const QString exe = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    QSettings(kRunKey, QSettings::NativeFormat).setValue("topscroll", "\"" + exe + "\" daemon");
+    QString err;
+    if (!QProcess::startDetached(QCoreApplication::applicationFilePath(), {"daemon"}))
+        err = tr("Couldn't start the background service.");
+    if (err != m_serviceError) {
+        m_serviceError = err;
+        emit serviceErrorChanged();
+    }
+    QTimer::singleShot(800, this, &Backend::refreshStatus);
+}
+
+void Backend::restartService()
+{
+    if (m_status.pid > 0) {
+        if (HANDLE h = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, DWORD(m_status.pid))) {
+            TerminateProcess(h, 0);
+            WaitForSingleObject(h, 2000);
+            CloseHandle(h);
+        }
+    }
+    startService();
+}
+
+#else
+
 void Backend::startService()
 {
     runSystemctl({"--user", "enable", "--now", "topscroll.service"});
@@ -75,6 +119,8 @@ void Backend::restartService()
 {
     runSystemctl({"--user", "restart", "topscroll.service"});
 }
+
+#endif
 
 void Backend::runSystemctl(const QStringList &args)
 {

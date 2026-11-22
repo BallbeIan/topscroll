@@ -6,6 +6,7 @@
 Slide along the top edge of your laptop's touchpad to scroll, in any app. Everything else on the touchpad works exactly as before.
 
 ![Linux](https://img.shields.io/badge/Linux-Wayland%20%26%20X11-FCC624?logo=linux&logoColor=black)
+![Windows](https://img.shields.io/badge/Windows-10%20%26%2011-0078D4?logo=windows&logoColor=white)
 ![Made for Omarchy](https://img.shields.io/badge/made%20for-Omarchy-1f6feb)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
@@ -33,6 +34,25 @@ That's it. No second finger, no keyboard shortcut. Moving the cursor, tapping, c
 - **Private.** No network access, no logging, no analytics.
 
 ## Install
+
+### Windows
+
+1. Download **`topscroll-…-windows-x64-setup.exe`** from the [latest release](../../releases/latest) and run it. It installs just for you, so no administrator password is needed.
+2. topscroll opens when the installer finishes, and from then on it starts by itself every time you sign in.
+3. Slide a finger along the top edge of your touchpad.
+
+Prefer not to install? The `windows-x64.zip` on the same page is portable: unzip it anywhere, run `topscroll.exe` and press **Start**.
+
+Your laptop needs a **Precision Touchpad**, which almost every Windows 10 and 11 laptop has. You can check under *Settings > Bluetooth & devices > Touchpad*: if you see gesture settings there, you're good.
+
+<details>
+<summary>Uninstall (Windows)</summary>
+
+*Settings > Apps > Installed apps > topscroll > Uninstall.* For the zip, run `topscroll.exe` once, turn it off, delete the folder, and remove `topscroll` from *Task Manager > Startup apps* if you pressed Start.
+
+</details>
+
+### Linux (Omarchy)
 
 topscroll is made for [Omarchy](https://omarchy.org) and isn't in its package list yet, so you build the package once. You'll need `git` and `base-devel`; the Qt libraries it needs come with Omarchy.
 
@@ -85,7 +105,8 @@ Press `?` in the window for keyboard shortcuts.
 - **It's new.** topscroll was built and tested on one Omarchy laptop. Other touchpads and desktops should work but haven't been verified. If you try it, please [tell me how it went](../../issues/new/choose), even if everything works.
 - **One touchpad.** Only the first touchpad it finds is used.
 - **Permissions.** To see your touches and create a virtual touchpad, topscroll gets access to your touchpad and to `/dev/uinput`, which the package sets up for you. Any program you run can use `/dev/uinput` to create virtual input devices, including a virtual keyboard; other packages such as game-controller remappers make the same trade-off. If that's not for you, don't install topscroll.
-- **Name-based settings.** The virtual touchpad is named `<your touchpad> (topscroll)`, so desktop settings keyed on the touchpad's exact name won't apply to it. General touchpad settings still do.
+- **On Windows.** Windows still sees your finger on the strip; topscroll holds the cursor still and blocks the tap while a strip touch is down, then sends ordinary mouse-wheel scrolling. Windows doesn't let normal programs scroll windows that run as administrator, so those won't scroll with topscroll.
+- **Name-based settings (Linux).** The virtual touchpad is named `<your touchpad> (topscroll)`, so desktop settings keyed on the touchpad's exact name won't apply to it. General touchpad settings still do.
 
 ## Something not working?
 
@@ -96,6 +117,7 @@ Press `?` in the window for keyboard shortcuts.
 | **Touchpad in use** | Another program has taken over the touchpad. Close it and try again. |
 | **Not running** | Press **Start**. |
 | **Update ready** | Press **Restart** to start using the new version. |
+| **Looking for a touchpad...** (Windows) | topscroll needs a Precision Touchpad. Check *Settings > Bluetooth & devices > Touchpad*; updating the touchpad driver from your laptop maker sometimes enables it. |
 | Scrolls the wrong way | Turn on **Flip direction**. |
 
 Still stuck? [Open an issue](../../issues/new/choose) and include the output of `topscroll status --json`.

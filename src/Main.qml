@@ -44,8 +44,17 @@ ApplicationWindow {
         default: return qsTr("Not running")
         }
     }
+    readonly property bool windows: Qt.platform.os === "windows"
     readonly property string statusHint: {
         if (backend.needsRestart) return qsTr("topscroll was updated. Restart the service to use the new version.")
+        if (win.windows) {
+            switch (backend.state) {
+            case "searching": return qsTr("topscroll needs a Precision Touchpad. Check Settings > Bluetooth & devices > Touchpad.")
+            case "uinput": return qsTr("Windows didn't let topscroll watch the touchpad. Restart your computer and try again.")
+            case "stopped": return qsTr("The background service isn't running.")
+            default: return ""
+            }
+        }
         switch (backend.state) {
         case "denied": return qsTr("No permission to read the touchpad. Log out and back in, then try again.")
         case "uinput": return qsTr("Can't create virtual input devices. Log out and back in, or run: sudo modprobe uinput")

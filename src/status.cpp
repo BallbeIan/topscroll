@@ -9,6 +9,13 @@
 #include <QSaveFile>
 #include <QStandardPaths>
 
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 QString Status::defaultPath()
 {
     QString dir = qEnvironmentVariable("XDG_RUNTIME_DIR");
@@ -64,7 +71,19 @@ bool Status::save(const QString &path) const
 
 bool Status::alive() const
 {
-    return pid > 0 && QFileInfo::exists(QStringLiteral("/proc/%1").arg(pid));
+    if (pid <= 0)
+        return false;
+#ifdef Q_OS_WIN
+    HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, DWORD(pid));
+    if (!h)
+        return false;
+    DWORD code = 0;
+    const bool running = GetExitCodeProcess(h, &code) && code == STILL_ACTIVE;
+    CloseHandle(h);
+    return running;
+#else
+    return QFileInfo::exists(QStringLiteral("/proc/%1").arg(pid));
+#endif
 }
 
 bool Status::needsRestart() const

@@ -1,7 +1,7 @@
 #include <QTemporaryDir>
 #include <QtTest>
 
-#include <linux/input.h>
+#include "../src/inputcodes.h"
 
 #include <vector>
 
